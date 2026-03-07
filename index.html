@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BCA">
+<meta name="theme-color" content="#0C1A0C">
+<title>Backcountry Athlete</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  REPLACE THESE TWO VALUES BEFORE DEPLOYING:
+  1. 'https://pvqemqukceerhurltyyy.supabase.co';
+  2. 'sb_publishable_chzsrueGDyTxcaef5MjGUA_ZeKbRwtq';
+  3. '2026';
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<script>
+  const SUPABASE_URL  = 'YOUR_SUPABASE_URL';
+  const SUPABASE_KEY  = 'YOUR_SUPABASE_ANON_KEY';
+  const COACH_PIN     = '1234'; // ← change this before deploying
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --bg:#0C1A0C;--surface:#162416;--card:#1C2E1C;--border:#2A3D2A;
+  --accent:#6DB33F;--gold:#C49A2A;--amber:#E8B84B;--text:#D8CCBA;
+  --muted:#7A8A6A;--danger:#C0392B;--info:#4A9EBF;
+  --pa:#2A4A1E;--pb:#4A3A0E;--pc:#1A2E4A;
+  --pa-t:#7DB87D;--pb-t:#E8B84B;--pc-t:#7AACE8;
+  --fh:'Barlow Condensed',sans-serif;--fb:'Barlow',sans-serif;
+  --nh:62px;--sbi:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--fb);}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;display:none;flex-direction:column;background:var(--bg);padding-bottom:calc(var(--nh) + var(--sbi) + 16px);}
+.screen.active{display:flex;}
+.screen-full{padding-bottom:0!important;}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);}
+h1,h2,h3,h4{font-family:var(--fh);letter-spacing:.03em;}
+
+/* NAV */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(12,26,12,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:10px;}
+.topbar h2{font-size:20px;font-weight:700;letter-spacing:.05em;flex:1;}
+.back-btn{background:none;border:none;color:var(--accent);font-size:26px;cursor:pointer;padding:0 8px 0 0;line-height:1;}
+#bnav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nh) + var(--sbi));background:rgba(14,22,14,.97);backdrop-filter:blur(10px);border-top:1px solid var(--border);display:none;align-items:flex-start;padding-top:6px;z-index:100;}
+#bnav.show{display:flex;}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:4px 2px;border:none;background:none;color:var(--muted);transition:color .2s;}
+.ni.active{color:var(--accent);}
+.ni-icon{font-size:19px;line-height:1.3;}
+.ni-lbl{font-family:var(--fh);font-size:10px;letter-spacing:.07em;text-transform:uppercase;}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin:0 16px 10px;}
+.card-sm{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;margin:0 16px 8px;}
+
+/* PHASE BADGES */
+.badge{display:inline-flex;align-items:center;font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.08em;padding:3px 9px;border-radius:4px;text-transform:uppercase;}
+.ba{background:var(--pa);color:var(--pa-t);border:1px solid #3A6A2A;}
+.bb{background:var(--pb);color:var(--pb-t);border:1px solid #6A5A1A;}
+.bc{background:var(--pc);color:var(--pc-t);border:1px solid #2A4A7A;}
+
+/* INPUTS */
+input,select,textarea{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:12px 14px;font-family:var(--fb);font-size:15px;width:100%;outline:none;-webkit-appearance:none;appearance:none;transition:border-color .15s;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(109,179,63,.12);}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M6 8L0 0h12z' fill='%237A8A6A'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
+select option{background:#162416;}
+label{font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;}
+.field{margin-bottom:14px;}
+
+/* BUTTONS */
+.btn{display:block;width:100%;padding:14px 16px;border:none;border-radius:8px;font-family:var(--fh);font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .15s;text-align:center;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:active{filter:brightness(.85);}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border);}
+.btn-ghost:active{background:var(--card);}
+.btn-danger{background:transparent;color:var(--danger);border:1px solid var(--danger);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-info{background:var(--info);color:#fff;}
+.btn-sm{padding:8px 16px;font-size:12px;display:inline-block;width:auto;}
+
+/* SECTION LABEL */
+.slabel{font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;padding:10px 16px 4px;}
+
+/* PIN PAD */
+.pin-display{display:flex;gap:16px;justify-content:center;margin:18px 0 26px;}
+.pin-dot{width:15px;height:15px;border-radius:50%;border:2px solid var(--border);transition:all .15s;}
+.pin-dot.filled{background:var(--accent);border-color:var(--accent);transform:scale(1.15);}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 24px;}
+.pk{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:17px;font-family:var(--fh);font-size:24px;font-weight:700;color:var(--text);cursor:pointer;text-align:center;transition:all .1s;user-select:none;}
+.pk:active{background:var(--accent);color:#fff;transform:scale(.95);}
+
+/* EXERCISE LOGGER */
+.ex-item{background:var(--card);border:1px solid var(--border);border-radius:10px;margin:0 16px 8px;overflow:hidden;}
+.ex-hdr{display:flex;align-items:center;padding:13px 14px;cursor:pointer;gap:10px;}
+.ex-num{font-family:var(--fh);font-size:12px;color:var(--muted);width:18px;flex-shrink:0;}
+.ex-name{font-family:var(--fh);font-size:15px;font-weight:600;flex:1;}
+.ex-status{font-size:15px;transition:all .2s;}
+.ex-body{padding:0 14px 14px;display:none;}
+.ex-body.open{display:block;}
+.set-grid{display:grid;grid-template-columns:28px 1fr 1fr 38px;gap:6px;align-items:center;margin-bottom:6px;}
+.set-lbl{font-family:var(--fh);font-size:10px;color:var(--muted);text-align:center;letter-spacing:.06em;text-transform:uppercase;}
+.set-in{padding:9px 4px;text-align:center;font-size:14px;border-radius:6px;}
+.set-chk{background:var(--surface);border:1px solid var(--border);border-radius:6px;height:36px;width:36px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all .15s;}
+.set-chk.done{background:var(--accent);border-color:var(--accent);color:#fff;}
+.ex-target{font-family:var(--fh);font-size:11px;color:var(--muted);letter-spacing:.06em;margin-bottom:10px;padding:6px 8px;background:var(--surface);border-radius:5px;}
+
+/* DAY TABS */
+.day-tabs{display:flex;overflow-x:auto;gap:6px;padding:10px 16px;scrollbar-width:none;}
+.day-tabs::-webkit-scrollbar{display:none;}
+.dtab{flex-shrink:0;padding:7px 14px;border-radius:20px;font-family:var(--fh);font-size:12px;font-weight:600;letter-spacing:.04em;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);transition:all .15s;}
+.dtab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+/* STATS GRID */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 16px 10px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
+.stat-val{font-family:var(--fh);font-size:32px;font-weight:800;color:var(--accent);line-height:1;}
+.stat-lbl{font-family:var(--fh);font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:3px;}
+
+/* HOME HERO */
+.home-hero{background:linear-gradient(145deg,#1A3A1A 0%,var(--card) 100%);border:1px solid #2A5A2A;border-radius:10px;padding:18px;margin:0 16px 10px;}
+.hero-day{font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;}
+.hero-session{font-family:var(--fh);font-size:24px;font-weight:800;color:var(--text);line-height:1.1;margin:4px 0 10px;}
+.hero-exlist{font-size:13px;color:var(--muted);line-height:1.8;}
+
+/* PHASE BAR */
+.phase-segs{display:flex;gap:3px;margin-top:8px;}
+.pseg{height:5px;border-radius:3px;flex:1;opacity:.3;}
+.pseg.pa{background:#6DB33F;}
+.pseg.pb{background:var(--amber);}
+.pseg.pc{background:var(--pc-t);}
+.pseg.active{opacity:1;}
+
+/* HISTORY */
+.hist-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin:0 16px 8px;}
+.hist-type{font-family:var(--fh);font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+.hist-session{font-family:var(--fh);font-size:16px;font-weight:600;margin:2px 0 4px;}
+.hist-meta{font-size:12px;color:var(--muted);}
+
+/* COACH DASHBOARD */
+.coach-stat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
+.coach-stat-val{font-family:var(--fh);font-size:36px;font-weight:800;line-height:1;}
+.coach-stat-lbl{font-family:var(--fh);font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:4px;}
+.athlete-row{display:flex;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border);gap:12px;}
+.athlete-row:last-child{border-bottom:none;}
+.athlete-avatar{width:36px;height:36px;border-radius:50%;background:var(--pa);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:14px;font-weight:700;color:var(--pa-t);flex-shrink:0;}
+.athlete-info{flex:1;}
+.athlete-name{font-family:var(--fh);font-size:15px;font-weight:600;}
+.athlete-meta{font-size:12px;color:var(--muted);margin-top:1px;}
+.log-row{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start;}
+.log-row:last-child{border-bottom:none;}
+.log-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.log-body{flex:1;}
+.log-name{font-family:var(--fh);font-size:14px;font-weight:600;}
+.log-detail{font-size:12px;color:var(--muted);margin-top:2px;}
+
+/* SETTINGS */
+.set-item{display:flex;align-items:center;padding:16px;border-bottom:1px solid var(--border);cursor:pointer;gap:12px;}
+.set-item:last-child{border-bottom:none;}
+.set-icon{font-size:18px;width:28px;text-align:center;}
+.set-body{flex:1;}
+.set-lbl{font-family:var(--fh);font-size:15px;font-weight:600;}
+.set-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.set-arrow{color:var(--muted);}
+
+/* INSTRUCTIONS */
+.step{display:flex;gap:14px;margin-bottom:18px;}
+.step-n{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--fh);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.step-b h4{font-family:var(--fh);font-size:15px;font-weight:700;color:var(--text);}
+.step-b p{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.6;}
+code{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-size:12px;color:var(--amber);word-break:break-all;}
+.code-block{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:11px;color:var(--amber);white-space:pre;overflow-x:auto;line-height:1.7;margin:8px 0;}
+
+/* MISC */
+.divider{height:1px;background:var(--border);margin:10px 16px;}
+.empty{text-align:center;padding:48px 24px;color:var(--muted);}
+.empty-icon{font-size:48px;margin-bottom:12px;}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-family:var(--fh);font-size:11px;font-weight:600;letter-spacing:.06em;}
+.pill-green{background:rgba(109,179,63,.15);color:var(--accent);border:1px solid rgba(109,179,63,.25);}
+.pill-gold{background:rgba(196,154,42,.15);color:var(--amber);border:1px solid rgba(196,154,42,.25);}
+.pill-red{background:rgba(192,57,43,.15);color:#E57363;border:1px solid rgba(192,57,43,.25);}
+.loading{text-align:center;padding:32px;color:var(--muted);font-family:var(--fh);font-size:14px;letter-spacing:.08em;}
+
+/* FILTER ROW */
+.filter-row{display:flex;gap:6px;padding:8px 16px;overflow-x:auto;scrollbar-width:none;}
+.filter-row::-webkit-scrollbar{display:none;}
+.ftab{flex-shrink:0;padding:5px 12px;border-radius:16px;font-family:var(--fh);font-size:11px;font-weight:600;letter-spacing:.05em;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);transition:all .15s;}
+.ftab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+/* TOAST */
+#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--card);border:1px solid var(--accent);color:var(--accent);padding:10px 22px;border-radius:8px;font-family:var(--fh);font-size:13px;font-weight:700;letter-spacing:.06em;z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+#toast.show{transform:translateX(-50%) translateY(0);}
+#toast.err{border-color:var(--danger);color:#E57363;background:rgba(192,57,43,.1);}
+
+/* SPLASH */
+#screen-splash{align-items:center;justify-content:center;gap:10px;background:radial-gradient(ellipse at 50% 60%,#1A3A1A 0%,var(--bg) 70%);}
+.splash-logo{font-family:var(--fh);font-size:64px;font-weight:800;color:var(--accent);letter-spacing:.04em;line-height:1;}
+.splash-sub{font-family:var(--fh);font-size:12px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;}
+@keyframes pulse{0%,100%{opacity:.4;}50%{opacity:.9;}}
+.pulse{animation:pulse 2s ease infinite;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.fade-up{animation:fadeUp .35s ease forwards;}
+
+/* OFFLINE INDICATOR */
+#offline-bar{position:fixed;top:0;left:0;right:0;background:var(--danger);color:#fff;font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.08em;text-align:center;padding:6px;z-index:200;display:none;text-transform:uppercase;}
+#offline-bar.show{display:block;}
+
+@media(min-width:480px){
+  body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:-1;}
+  .screen,#bnav,#toast,#offline-bar{max-width:480px;margin:0 auto;left:0;right:0;}
+  .screen{left:50%;right:auto;transform:translateX(-50%);border-left:1px solid var(--border);border-right:1px solid var(--border);}
+  #bnav{left:50%;transform:translateX(-50%);width:480px;}
+}
+</style>
+</head>
+<body>
+
+<div id="offline-bar">⚡ Offline — data queued for sync</div>
+<div id="toast"></div>
+
+<!-- BOTTOM NAV -->
+<nav id="bnav">
+  <button class="ni active" data-s="home" onclick="nav('home')">
+    <span class="ni-icon">⛰</span><span class="ni-lbl">Home</span>
+  </button>
+  <button class="ni" data-s="workout" onclick="nav('workout')">
+    <span class="ni-icon">💪</span><span class="ni-lbl">Workout</span>
+  </button>
+  <button class="ni" data-s="ruck" onclick="nav('ruck')">
+    <span class="ni-icon">🎒</span><span class="ni-lbl">Ruck</span>
+  </button>
+  <button class="ni" data-s="history" onclick="nav('history')">
+    <span class="ni-icon">📋</span><span class="ni-lbl">History</span>
+  </button>
+  <button class="ni" data-s="settings" onclick="nav('settings')">
+    <span class="ni-icon">⚙️</span><span class="ni-lbl">More</span>
+  </button>
+</nav>
+
+<!-- ══════════════════════════════════ SPLASH ══ -->
+<div id="screen-splash" class="screen screen-full active">
+  <div class="splash-logo">BCA</div>
+  <div class="splash-sub">Backcountry Athlete</div>
+  <div style="margin-top:32px;font-size:32px;" class="pulse">⛰</div>
+</div>
+
+<!-- ══════════════════════════════════ SETUP ══ -->
+<div id="screen-setup" class="screen screen-full">
+  <div style="padding:40px 24px 20px;text-align:center;background:linear-gradient(160deg,#1A3A1A 0%,var(--bg) 60%);">
+    <div style="font-family:var(--fh);font-size:48px;font-weight:800;color:var(--accent);">BCA</div>
+    <div style="font-family:var(--fh);font-size:11px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-top:4px;">Backcountry Athlete Tracker</div>
+    <p style="font-size:13px;color:var(--muted);margin-top:14px;line-height:1.6;">Dan Go High Performance Framework · 46 Outdoors Mountain-Strength Method</p>
+  </div>
+  <div style="padding:8px 24px 32px;">
+    <div class="field"><label>Your Nickname</label>
+      <input type="text" id="setup-name" placeholder="e.g. Ridge, Hawk, T-Bone" maxlength="20" autocomplete="off" autocapitalize="words">
+    </div>
+    <div class="field"><label>Your Age</label>
+      <input type="number" id="setup-age" placeholder="Age" min="10" max="65" inputmode="numeric">
+    </div>
+    <div class="field"><label>Equipment Level</label>
+      <select id="setup-equip">
+        <option value="bw">Bodyweight Only</option>
+        <option value="db">Bodyweight + Dumbbells</option>
+        <option value="bb" selected>Full Barbell Setup</option>
+      </select>
+    </div>
+    <div class="field"><label>Starting Phase</label>
+      <select id="setup-phase">
+        <option value="A">Phase A — Endurance & Hypertrophy (Months 1–3)</option>
+        <option value="B">Phase B — Strength & Power (Months 4–9)</option>
+        <option value="C">Phase C — Endurance Return (Months 10–12)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Create Your 4-Digit PIN</label>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">You'll use this to log back in from any device.</p>
+      <div class="pin-display" id="setup-dots">
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <div class="pin-pad" id="setup-pad"></div>
+    </div>
+    <div style="margin-top:20px;">
+      <button class="btn btn-primary" onclick="completeSetup()">CREATE PROFILE & START ⛰</button>
+    </div>
+    <div id="setup-status" style="text-align:center;font-family:var(--fh);font-size:12px;color:var(--muted);margin-top:12px;min-height:18px;"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ PIN ══ -->
+<div id="screen-pin" class="screen screen-full" style="align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(ellipse at 50% 40%,#1A3A1A 0%,var(--bg) 65%);">
+  <div style="font-family:var(--fh);font-size:44px;font-weight:800;color:var(--accent);">BCA</div>
+  <div id="pin-name" style="font-family:var(--fh);font-size:20px;font-weight:600;margin:6px 0 2px;"></div>
+  <div style="font-family:var(--fh);font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;">Enter PIN</div>
+  <div class="pin-display" id="pin-dots">
+    <div class="pin-dot"></div><div class="pin-dot"></div>
+    <div class="pin-dot"></div><div class="pin-dot"></div>
+  </div>
+  <div class="pin-pad" id="pin-pad" style="width:100%;max-width:310px;"></div>
+  <button onclick="switchUser()" style="margin-top:28px;background:none;border:none;color:var(--muted);font-family:var(--fh);font-size:12px;letter-spacing:.06em;cursor:pointer;text-decoration:underline;padding:8px;">Different athlete? Switch here</button>
+</div>
+
+<!-- ══════════════════════════════════ HOME ══ -->
+<div id="screen-home" class="screen">
+  <div class="topbar">
+    <div style="flex:1;">
+      <div style="font-family:var(--fh);font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;" id="h-greeting"></div>
+      <h2 id="h-name">Athlete</h2>
+    </div>
+    <div style="text-align:right;">
+      <span id="h-badge" class="badge ba">Phase A</span>
+      <div id="h-group" style="font-family:var(--fh);font-size:10px;color:var(--muted);margin-top:3px;"></div>
+    </div>
+  </div>
+  <div style="height:8px;"></div>
+  <div class="home-hero">
+    <div class="hero-day" id="h-day"></div>
+    <div class="hero-session" id="h-session"></div>
+    <div class="hero-exlist" id="h-exercises"></div>
+  </div>
+  <button class="btn btn-primary" style="margin:0 16px 12px;" onclick="nav('workout')">LOG TODAY'S WORKOUT →</button>
+  <div class="slabel">This Week</div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-val" id="h-wk-sessions">—</div><div class="stat-lbl">Sessions</div></div>
+    <div class="stat-card"><div class="stat-val" id="h-wk-rucks">—</div><div class="stat-lbl">Rucks</div></div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+      <div>
+        <div style="font-family:var(--fh);font-size:14px;font-weight:700;" id="h-phase-lbl">Phase A</div>
+        <div style="font-family:var(--fh);font-size:11px;color:var(--muted);" id="h-phase-sub"></div>
+      </div>
+      <div style="font-family:var(--fh);font-size:12px;color:var(--muted);text-align:right;" id="h-phase-target"></div>
+    </div>
+    <div class="phase-segs" id="h-segs"></div>
+  </div>
+  <div class="card" style="background:linear-gradient(135deg,#182E18 0%,var(--card) 100%);">
+    <div style="font-family:var(--fh);font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;">🎒 6-Month Ruck Target</div>
+    <div style="font-family:var(--fh);font-size:14px;margin-top:6px;" id="h-ruck-target"></div>
+  </div>
+  <div style="height:6px;"></div>
+</div>
+
+<!-- ══════════════════════════════════ WORKOUT ══ -->
+<div id="screen-workout" class="screen">
+  <div class="topbar">
+    <h2>Workout</h2>
+    <span id="w-badge" class="badge ba"></span>
+  </div>
+  <div class="day-tabs" id="w-day-tabs"></div>
+  <div id="w-phase-info" style="background:var(--card);border-left:3px solid var(--accent);padding:10px 14px;margin:0 16px 10px;border-radius:0 8px 8px 0;">
+    <div style="font-family:var(--fh);font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;">Target This Phase</div>
+    <div style="font-family:var(--fh);font-size:14px;font-weight:600;margin-top:3px;" id="w-target"></div>
+  </div>
+  <div id="w-exercise-list"></div>
+  <div style="padding:4px 16px 8px;">
+    <div class="field"><label>Session Notes</label>
+      <textarea id="w-notes" rows="2" placeholder="PRs, how it felt, energy level..."></textarea>
+    </div>
+    <button class="btn btn-primary" id="w-save-btn" onclick="saveWorkout()">SAVE SESSION ✓</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ RUCK ══ -->
+<div id="screen-ruck" class="screen">
+  <div class="topbar"><h2>Ruck Log 🎒</h2></div>
+  <div style="padding:12px 16px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="field"><label>Date</label><input type="date" id="r-date"></div>
+      <div class="field"><label>Duration (min)</label><input type="number" id="r-dur" placeholder="60" inputmode="numeric"></div>
+      <div class="field"><label>Distance (mi)</label><input type="number" id="r-dist" placeholder="3.5" inputmode="decimal" step="0.1"></div>
+      <div class="field"><label>Pack Weight (lb)</label><input type="number" id="r-wt" placeholder="30" inputmode="numeric"></div>
+      <div class="field"><label>Elevation Gain (ft)</label><input type="number" id="r-elev" placeholder="800" inputmode="numeric"></div>
+      <div class="field"><label>Avg Heart Rate</label><input type="number" id="r-hr" placeholder="145" inputmode="numeric"></div>
+    </div>
+    <div class="field">
+      <label>RPE <span id="r-rpe-val" style="color:var(--accent);font-weight:700;">7</span> / 10</label>
+      <input type="range" id="r-rpe" min="1" max="10" value="7" oninput="document.getElementById('r-rpe-val').textContent=this.value" style="padding:8px 0;border:none;background:none;cursor:pointer;">
+      <div style="display:flex;justify-content:space-between;font-family:var(--fh);font-size:11px;color:var(--muted);">
+        <span>Easy</span><span>Max Effort</span>
+      </div>
+    </div>
+    <div class="field"><label>Notes</label>
+      <textarea id="r-notes" rows="3" placeholder="Trail, conditions, gear, highlights..."></textarea>
+    </div>
+    <button class="btn btn-gold" onclick="saveRuck()">LOG THIS RUCK 🎒</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ HISTORY ══ -->
+<div id="screen-history" class="screen">
+  <div class="topbar"><h2>My History</h2>
+    <span id="h-sync-status" class="pill pill-green" style="font-size:10px;"></span>
+  </div>
+  <div id="history-list"><div class="loading">Loading...</div></div>
+</div>
+
+<!-- ══════════════════════════════════ SETTINGS ══ -->
+<div id="screen-settings" class="screen">
+  <div class="topbar"><h2>More</h2></div>
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;margin:12px 16px;overflow:hidden;">
+    <div class="set-item" onclick="toggleSub('sub-profile')">
+      <span class="set-icon">👤</span>
+      <div class="set-body"><div class="set-lbl">My Profile</div><div class="set-sub" id="s-profile-sub"></div></div>
+      <span class="set-arrow">›</span>
+    </div>
+    <div class="set-item" onclick="toggleSub('sub-phase')">
+      <span class="set-icon">📅</span>
+      <div class="set-body"><div class="set-lbl">Phase & Equipment</div><div class="set-sub" id="s-phase-sub"></div></div>
+      <span class="set-arrow">›</span>
+    </div>
+    <div class="set-item" onclick="nav('instructions')">
+      <span class="set-icon">📖</span>
+      <div class="set-body"><div class="set-lbl">Setup Guide</div><div class="set-sub">GitHub + Supabase instructions</div></div>
+      <span class="set-arrow">›</span>
+    </div>
+    <div class="set-item" onclick="nav('coach-pin')">
+      <span class="set-icon">🏔</span>
+      <div class="set-body"><div class="set-lbl">Coach Dashboard</div><div class="set-sub">PIN protected — coaches only</div></div>
+      <span class="set-arrow">›</span>
+    </div>
+    <div class="set-item" onclick="retrySyncQueue()">
+      <span class="set-icon">🔄</span>
+      <div class="set-body"><div class="set-lbl">Sync Pending Data</div><div class="set-sub" id="s-queue"></div></div>
+    </div>
+  </div>
+
+  <!-- Profile edit -->
+  <div id="sub-profile" style="display:none;padding:0 16px;">
+    <div class="slabel">Edit Profile</div>
+    <div class="field"><label>Nickname</label><input type="text" id="e-name" maxlength="20" autocapitalize="words"></div>
+    <div class="field"><label>Age</label><input type="number" id="e-age" min="10" max="65" inputmode="numeric"></div>
+    <button class="btn btn-primary" onclick="saveProfileEdit()" style="margin-bottom:8px;">SAVE CHANGES</button>
+    <button class="btn btn-ghost" onclick="toggleSub('sub-profile')">CANCEL</button>
+  </div>
+
+  <!-- Phase edit -->
+  <div id="sub-phase" style="display:none;padding:0 16px;">
+    <div class="slabel">Update Phase & Equipment</div>
+    <div class="field"><label>Current Phase</label>
+      <select id="e-phase">
+        <option value="A">Phase A — Endurance (Months 1–3)</option>
+        <option value="B">Phase B — Strength & Power (Months 4–9)</option>
+        <option value="C">Phase C — Endurance Return (Months 10–12)</option>
+      </select>
+    </div>
+    <div class="field"><label>Equipment Level</label>
+      <select id="e-equip">
+        <option value="bw">Bodyweight Only</option>
+        <option value="db">Bodyweight + Dumbbells</option>
+        <option value="bb">Full Barbell Setup</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="savePhaseEdit()" style="margin-bottom:8px;">SAVE</button>
+    <button class="btn btn-ghost" onclick="toggleSub('sub-phase')">CANCEL</button>
+  </div>
+
+  <div style="padding:8px 16px 0;">
+    <button class="btn btn-danger" onclick="confirmLogout()">LOG OUT</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ COACH PIN ══ -->
+<div id="screen-coach-pin" class="screen screen-full" style="align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(ellipse at 50% 40%,#2A1A00 0%,var(--bg) 65%);">
+  <div style="font-size:36px;margin-bottom:8px;">🏔</div>
+  <div style="font-family:var(--fh);font-size:22px;font-weight:700;color:var(--amber);">COACH ACCESS</div>
+  <div style="font-family:var(--fh);font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:4px;">Enter Coach PIN</div>
+  <div class="pin-display" id="cp-dots">
+    <div class="pin-dot"></div><div class="pin-dot"></div>
+    <div class="pin-dot"></div><div class="pin-dot"></div>
+  </div>
+  <div class="pin-pad" id="cp-pad" style="width:100%;max-width:310px;"></div>
+  <button onclick="nav('settings')" style="margin-top:24px;background:none;border:none;color:var(--muted);font-family:var(--fh);font-size:12px;cursor:pointer;text-decoration:underline;padding:8px;">Back</button>
+</div>
+
+<!-- ══════════════════════════════════ COACH DASHBOARD ══ -->
+<div id="screen-coach" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="nav('settings')">‹</button>
+    <h2>Coach Dashboard</h2>
+    <button onclick="loadCoachData()" style="background:none;border:none;color:var(--accent);font-family:var(--fh);font-size:11px;cursor:pointer;letter-spacing:.06em;">REFRESH</button>
+  </div>
+
+  <div style="padding:10px 16px 0;">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;">
+      <div class="coach-stat"><div class="coach-stat-val" id="c-total" style="color:var(--accent);">—</div><div class="coach-stat-lbl">Athletes</div></div>
+      <div class="coach-stat"><div class="coach-stat-val" id="c-wk-sessions" style="color:var(--amber);">—</div><div class="coach-stat-lbl">Wk Sessions</div></div>
+      <div class="coach-stat"><div class="coach-stat-val" id="c-wk-rucks" style="color:var(--pa-t);">—</div><div class="coach-stat-lbl">Wk Rucks</div></div>
+    </div>
+  </div>
+
+  <div class="slabel">Athletes by Group</div>
+  <div style="padding:0 16px 8px;display:flex;gap:6px;flex-wrap:wrap;" id="c-group-pills"></div>
+
+  <div class="filter-row" id="c-filter-row">
+    <div class="ftab active" onclick="filterLogs('all',this)">All Logs</div>
+    <div class="ftab" onclick="filterLogs('workout',this)">Workouts</div>
+    <div class="ftab" onclick="filterLogs('ruck',this)">Rucks</div>
+    <div class="ftab" onclick="filterCoachGroup('10-12',this)">10–12</div>
+    <div class="ftab" onclick="filterCoachGroup('13-16',this)">13–16</div>
+    <div class="ftab" onclick="filterCoachGroup('17-22',this)">17–22</div>
+    <div class="ftab" onclick="filterCoachGroup('23-27',this)">23–27</div>
+    <div class="ftab" onclick="filterCoachGroup('28-32',this)">28–32</div>
+    <div class="ftab" onclick="filterCoachGroup('33+',this)">33+</div>
+  </div>
+
+  <div class="slabel">Athletes</div>
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;margin:0 16px 10px;overflow:hidden;" id="c-athletes-list">
+    <div class="loading">Loading...</div>
+  </div>
+
+  <div class="slabel">Recent Logs</div>
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;margin:0 16px 10px;overflow:hidden;" id="c-logs-list">
+    <div class="loading">Loading...</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ INSTRUCTIONS ══ -->
+<div id="screen-instructions" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="nav('settings')">‹</button>
+    <h2>Setup Guide</h2>
+  </div>
+  <div style="padding:16px 16px 32px;">
+    <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px;">Follow these steps once to get your BCA app live on the web and connected to a database for all your athletes.</p>
+
+    <div style="background:var(--pb);border:1px solid #6A5A1A;border-radius:8px;padding:14px;margin-bottom:20px;">
+      <div style="font-family:var(--fh);font-size:13px;font-weight:700;color:var(--amber);letter-spacing:.06em;">BEFORE YOU START</div>
+      <p style="font-size:13px;color:var(--muted);margin-top:6px;line-height:1.5;">You need: a GitHub account (free) and a Supabase account (free at supabase.com). The whole setup takes about 20 minutes.</p>
+    </div>
+
+    <div style="font-family:var(--fh);font-size:16px;font-weight:700;color:var(--amber);letter-spacing:.06em;margin-bottom:12px;">PART 1 — SUPABASE DATABASE</div>
+
+    <div class="step"><div class="step-n">1</div><div class="step-b"><h4>Create Supabase Account</h4><p>Go to <code>supabase.com</code> → Sign up free → Create a new project. Name it <strong style="color:var(--text);">bca-tracker</strong>. Save your database password somewhere safe.</p></div></div>
+
+    <div class="step"><div class="step-n">2</div><div class="step-b"><h4>Run the Database Schema</h4>
+      <p>In your Supabase project, go to <strong style="color:var(--text);">SQL Editor</strong> → New Query. Paste and run this:</p>
+      <div class="code-block">create table athletes (
+  id uuid default gen_random_uuid() primary key,
+  nickname text unique not null,
+  pin text not null,
+  age int not null,
+  age_group text not null,
+  equip text not null,
+  phase text not null,
+  created_at timestamptz default now()
+);
+
+create table workout_logs (
+  id uuid default gen_random_uuid() primary key,
+  athlete_id uuid references athletes(id),
+  nickname text,
+  age_group text,
+  phase text,
+  day text,
+  session text,
+  exercises jsonb,
+  notes text,
+  equipment text,
+  created_at timestamptz default now()
+);
+
+create table ruck_logs (
+  id uuid default gen_random_uuid() primary key,
+  athlete_id uuid references athletes(id),
+  nickname text,
+  age_group text,
+  phase text,
+  ruck_date text,
+  duration int,
+  distance numeric,
+  pack_weight int,
+  elevation int,
+  avg_hr int,
+  rpe int,
+  notes text,
+  created_at timestamptz default now()
+);</div>
+    </div></div>
+
+    <div class="step"><div class="step-n">3</div><div class="step-b"><h4>Get Your API Keys</h4><p>In Supabase go to <strong style="color:var(--text);">Settings → API</strong>. Copy your <strong style="color:var(--text);">Project URL</strong> and your <strong style="color:var(--text);">anon/public key</strong>. You'll need these in Part 2.</p></div></div>
+
+    <div class="step"><div class="step-n">4</div><div class="step-b"><h4>Disable RLS (for simplicity)</h4><p>Go to <strong style="color:var(--text);">Table Editor</strong> → click each table → <strong style="color:var(--text);">RLS is on — click to disable</strong>. Do this for all 3 tables. This lets the app read/write freely with your anon key.</p></div></div>
+
+    <div style="font-family:var(--fh);font-size:16px;font-weight:700;color:var(--amber);letter-spacing:.06em;margin:20px 0 12px;">PART 2 — DEPLOY TO GITHUB PAGES</div>
+
+    <div class="step"><div class="step-n">5</div><div class="step-b"><h4>Create a GitHub Repository</h4><p>Go to <code>github.com</code> → New repository → name it <strong style="color:var(--text);">bca-tracker</strong> → Public → Create. Don't add any default files.</p></div></div>
+
+    <div class="step"><div class="step-n">6</div><div class="step-b"><h4>Edit index.html Before Uploading</h4>
+      <p>Open <code>index.html</code> in any text editor (Notepad, TextEdit). Find the 3 lines near the top that say <code>YOUR_SUPABASE_URL</code> and <code>YOUR_SUPABASE_ANON_KEY</code> and replace them with your actual values. Also change <code>COACH_PIN</code> from <code>'1234'</code> to your chosen coach PIN.</p>
+      <p style="margin-top:6px;">It should look like:</p>
+      <div class="code-block">const SUPABASE_URL = 'https://xxxx.supabase.co';
+const SUPABASE_KEY = 'eyJhbGci...';
+const COACH_PIN   = '7391';</div>
+    </div></div>
+
+    <div class="step"><div class="step-n">7</div><div class="step-b"><h4>Upload All 3 Files</h4><p>In your new GitHub repo click <strong style="color:var(--text);">Add file → Upload files</strong>. Drag in your edited <code>index.html</code>, <code>manifest.json</code>, and <code>sw.js</code>. Commit.</p></div></div>
+
+    <div class="step"><div class="step-n">8</div><div class="step-b"><h4>Enable GitHub Pages</h4><p>In your repo go to <strong style="color:var(--text);">Settings → Pages → Source: Deploy from branch → main → / (root)</strong> → Save. Wait 2 minutes. Your app URL will be: <code>yourusername.github.io/bca-tracker</code></p></div></div>
+
+    <div class="step"><div class="step-n">9</div><div class="step-b"><h4>Share the Link</h4><p>Send that URL to every athlete. On iPhone: open in Safari → Share button → <strong style="color:var(--text);">Add to Home Screen</strong>. On Android: Chrome menu → <strong style="color:var(--text);">Add to Home Screen</strong>. It installs as an app icon.</p></div></div>
+
+    <div style="background:var(--pa);border:1px solid #3A6A2A;border-radius:8px;padding:14px;margin-top:8px;">
+      <div style="font-family:var(--fh);font-size:13px;font-weight:700;color:var(--pa-t);letter-spacing:.06em;">✓ YOU'RE LIVE</div>
+      <p style="font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6;">Every athlete creates their profile on first open. All data syncs to your Supabase database. Access the coach dashboard from any athlete's phone via More → Coach Dashboard.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// PROGRAM DATA
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const DAYS_OF_WEEK = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const PROGRAM = {
+  '10-12':{label:'Ages 10–12',sub:'Foundation Builder',
+    phases:{A:{sets:'3',reps:'12–15',rest:'45–60s',load:'Bodyweight Only'},B:{sets:'3',reps:'4–8',rest:'90–120s',load:'BW + Pauses & Slow Eccentrics'},C:{sets:'3',reps:'12–15',rest:'45–60s',load:'Bodyweight Only'}},
+    ruck:{start:'5–10 lb daypack, 30 min',target:'20 min elevation gain w/ 10 lb pack by Month 6'},
+    workouts:[
+      {day:'Monday',session:'Lower Push',ex:['Bodyweight Squat','Forward Lunge','Calf Raise','Dead Bug']},
+      {day:'Wednesday',session:'Upper Pull + Core',ex:['Push-Up','Pike Push-Up','Plank Hold','Bird Dog']},
+      {day:'Friday',session:'Full Body',ex:['Inverted Row (table)','Jumping Jacks','Mountain Climbers','Superman Hold']},
+      {day:'Saturday',session:'Hike / Outdoor Activity',ex:['Trail walk 30–60 min'],ruck:true}
+    ]},
+  '13-16':{label:'Ages 13–16',sub:'Athletic Development',
+    phases:{A:{sets:'3',reps:'15–20',rest:'45–90s',load:'BW + Light Dumbbells'},B:{sets:'4',reps:'4–8',rest:'2–3 min',load:'DB → Light Barbell (Month 7+)'},C:{sets:'3',reps:'12–15',rest:'45–90s',load:'DB + Barbell Consolidation'}},
+    ruck:{start:'10–20 lb, 45 min',target:'45 min trail w/ 600 ft gain & 20 lb pack by Month 6'},
+    workouts:[
+      {day:'Monday',session:'Lower Push',ex:['Goblet Squat','Bulgarian Split Squat','Glute Bridge','Calf Raise']},
+      {day:'Tuesday',session:'Upper Pull',ex:['DB Bent-Over Row','Inverted Row','Band Pull-Apart','Dead Bug']},
+      {day:'Thursday',session:'Lower Pull',ex:['Romanian Deadlift (DB)','Good Morning','Step-Up','Nordic Curl']},
+      {day:'Friday',session:'Upper Push',ex:['Push-Up','DB Overhead Press','Plank','Pallof Press (band)']},
+      {day:'Saturday',session:'Trail Hike / Ruck',ex:['45–60 min hike or loaded walk'],ruck:true}
+    ]},
+  '17-22':{label:'Ages 17–22',sub:'Peak Athletic Development',
+    phases:{A:{sets:'3–4',reps:'12–20',rest:'45–90s',load:'BW + DB + Barbell Submaximal'},B:{sets:'4–5',reps:'4–8',rest:'2–3 min',load:'Barbell at Working Intensity — Track 1RM'},C:{sets:'3–4',reps:'12–20',rest:'45–90s',load:'Barbell at 60–70% 1RM'}},
+    ruck:{start:'25–35 lb, 60–75 min, 2×/week',target:'90 min trail w/ 1,500 ft gain & 35 lb pack by Month 6'},
+    workouts:[
+      {day:'Monday',session:'Lower Push',ex:['Back Squat / Pistol Squat','Bulgarian Split Squat','Box Step-Up','Calf Raise']},
+      {day:'Tuesday',session:'Upper Pull',ex:['Pull-Up / Chin-Up','Barbell or DB Row','Face Pull','Farmer\'s Carry']},
+      {day:'Wednesday',session:'Conditioning',ex:['Loaded Carries 3×200m','Box Jumps','Hill Sprint','KB Swings']},
+      {day:'Thursday',session:'Lower Pull',ex:['Conventional Deadlift','Romanian Deadlift','Nordic Hamstring Curl','Hip Thrust']},
+      {day:'Friday',session:'Upper Push',ex:['Overhead Press','Push-Up (weighted)','Dip','Ab Wheel Rollout']},
+      {day:'Saturday',session:'Long Ruck',ex:['60–90 min ruck w/ 25–40 lb pack'],ruck:true},
+      {day:'Sunday',session:'Active Recovery',ex:['Stretching / Yoga / Zone 2 Walk'],recovery:true}
+    ]},
+  '23-27':{label:'Ages 23–27',sub:'Prime Performance · Backcountry Specialist',
+    phases:{A:{sets:'4',reps:'15–20',rest:'45–90s',load:'BW + DB + Moderate Barbell'},B:{sets:'5',reps:'4–8',rest:'2–3 min',load:'Barbell 70%→85% 1RM · 2 Ruck Days/Week'},C:{sets:'4',reps:'12–20',rest:'45–90s',load:'Hypertrophy Emphasis + Ruck Maintenance'}},
+    ruck:{start:'35–50 lb, 75–90 min, 2×/week',target:'2 hr trail w/ 2,000 ft gain & 50 lb pack by Month 6'},
+    workouts:[
+      {day:'Monday',session:'Lower Push',ex:['Back Squat','Lunge (loaded)','Step-Up (loaded)','Calf Raise']},
+      {day:'Tuesday',session:'Upper Pull',ex:['Weighted Pull-Up','Pendlay Row','Farmer\'s Carry 3×60m','Band Pull-Apart']},
+      {day:'Wednesday',session:'Conditioning',ex:['Hill Sprints 8×30s','Loaded Box Step 3×15','KB Swing','Plank Tap']},
+      {day:'Thursday',session:'Lower Pull',ex:['Deadlift','Hip Thrust (barbell)','Nordic Hamstring Curl','Good Morning']},
+      {day:'Friday',session:'Upper Push',ex:['OHP','Weighted Dip','Archer / Plyo Push-Up','Pallof Press + L-Sit']},
+      {day:'Saturday',session:'Long Ruck',ex:['60–90 min ruck w/ 35–50 lb — technical terrain'],ruck:true},
+      {day:'Sunday',session:'Active Recovery',ex:['Mobility flow / Swimming / Zone 2 Cycling'],recovery:true}
+    ]},
+  '28-32':{label:'Ages 28–32',sub:'Strength Maintenance · Injury-Resilient',
+    phases:{A:{sets:'3–4',reps:'12–15',rest:'60–90s',load:'Full-Body Moderate · 10 min Warmup Required'},B:{sets:'4',reps:'4–8',rest:'2–3 min',load:'Submaximal Barbell 80–85% 1RM · Deload Every 4th Week'},C:{sets:'3',reps:'12–15',rest:'60–90s',load:'Endurance Return + Body Comp · Joint Recovery'}},
+    ruck:{start:'30–45 lb, 60–75 min, 1–2×/week',target:'90 min trail w/ 1,500 ft gain & 45 lb pack by Month 6'},
+    workouts:[
+      {day:'Monday',session:'Full Lower',ex:['Front Squat / Goblet Squat','Step-Up','Nordic Curl','Hip Thrust']},
+      {day:'Tuesday',session:'Upper Pull',ex:['Pull-Up','DB or Cable Row','Farmer\'s Carry 3×50m','Face Pull']},
+      {day:'Thursday',session:'Lower Alt.',ex:['Romanian Deadlift','Reverse Lunge','Copenhagen Plank','Glute Bridge']},
+      {day:'Friday',session:'Upper Push',ex:['OHP','Push-Up Variation','Cable/Band Chest Press','Pallof Press']},
+      {day:'Saturday',session:'Ruck / Hike',ex:['45–75 min ruck w/ 30–45 lb pack'],ruck:true},
+      {day:'Sunday',session:'Mobility',ex:['30–45 min — Hip flexors, T-spine, calves'],recovery:true}
+    ]},
+  '33+':{label:'Ages 33+',sub:'Longevity & Sustainable Performance',
+    phases:{A:{sets:'3',reps:'12–15',rest:'60–90s',load:'Full-Body + Zone 2 Cardio 3×/week'},B:{sets:'3–4',reps:'4–8',rest:'2–3 min',load:'Moderate-Heavy Unilateral Priority · Deload Every 3rd Week'},C:{sets:'3',reps:'12–15',rest:'60–90s',load:'60–70% All Loads · Recovery & Longevity Focus'}},
+    ruck:{start:'25–40 lb, 45–60 min, 1×/week',target:'60 min trail w/ 1,000 ft gain & 40 lb pack by Month 6'},
+    workouts:[
+      {day:'Monday',session:'Lower Body',ex:['Goblet / Single-Leg Squat','Step-Up','Hip Thrust','Calf Raise']},
+      {day:'Tuesday',session:'Upper Pull',ex:['Pull-Up / Lat Pulldown','DB Row','Farmer\'s Carry 2×40m','Dead Bug']},
+      {day:'Thursday',session:'Full Circuit',ex:['KB Swing','Push-Up','Reverse Lunge','Row','Plank (circuit)']},
+      {day:'Friday',session:'Upper Push',ex:['OHP','Push-Up','Shoulder Y-T-W','Band Rotations (Rotator Cuff)']},
+      {day:'Saturday',session:'Ruck / Hike',ex:['45–60 min ruck w/ 25–40 lb'],ruck:true},
+      {day:'Sunday',session:'Full Recovery',ex:['Yoga / Sauna / Active Walk'],recovery:true}
+    ]}
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// STATE & DB
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let db = null;
+let profile = null;
+let allCoachLogs = [];
+let allAthletes = [];
+let activeWorkoutDay = null;
+
+function initDB(){
+  if(typeof supabase === 'undefined' || SUPABASE_URL === 'YOUR_SUPABASE_URL') return null;
+  try{ return supabase.createClient(SUPABASE_URL, SUPABASE_KEY); }
+  catch(e){ return null; }
+}
+
+function getAgeGroup(a){
+  if(a<=12)return'10-12';if(a<=16)return'13-16';if(a<=22)return'17-22';
+  if(a<=27)return'23-27';if(a<=32)return'28-32';return'33+';
+}
+
+function lsGet(k){ try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch{return null;} }
+function lsSet(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch{} }
+
+function getQueue(){ return lsGet('bca_queue')||[]; }
+function addToQueue(item){ const q=getQueue();q.push(item);lsSet('bca_queue',q); }
+function clearQueue(){ lsSet('bca_queue',[]); }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// INIT
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+window.addEventListener('load',()=>{
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+  db = initDB();
+  window.addEventListener('online',()=>{ document.getElementById('offline-bar').classList.remove('show'); retrySyncQueue(); });
+  window.addEventListener('offline',()=>{ document.getElementById('offline-bar').classList.add('show'); });
+  if(!navigator.onLine) document.getElementById('offline-bar').classList.add('show');
+  document.getElementById('r-date').value = today();
+  setTimeout(boot, 800);
+});
+
+function today(){ return new Date().toISOString().split('T')[0]; }
+
+function boot(){
+  profile = lsGet('bca_profile');
+  if(!profile){ showScreen('setup'); buildPad('setup-pad','setup-dots', pin => { profile&&(profile._setupPin=pin); setupPin=pin; }); return; }
+  showScreen('pin');
+  document.getElementById('pin-name').textContent = profile.nickname;
+  buildPad('pin-pad','pin-dots', attemptLogin);
+}
+
+let setupPin = '';
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// SCREENS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const NO_NAV = ['splash','setup','pin','coach-pin','instructions'];
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const s=document.getElementById('screen-'+id);
+  if(s){s.classList.add('active');s.scrollTop=0;}
+  const bnav=document.getElementById('bnav');
+  NO_NAV.includes(id)?bnav.classList.remove('show'):bnav.classList.add('show');
+  document.querySelectorAll('.ni').forEach(n=>n.classList.toggle('active',n.dataset.s===id));
+}
+
+function nav(id){
+  if(id==='home') renderHome();
+  else if(id==='workout') renderWorkout();
+  else if(id==='history') renderHistory();
+  else if(id==='settings') renderSettings();
+  else if(id==='coach-pin') buildCoachPinScreen();
+  showScreen(id);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// PIN PAD
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function buildPad(padId,dotsId,onComplete){
+  const pad=document.getElementById(padId);
+  const dotsEl=document.getElementById(dotsId);
+  let pin='';
+  pad.innerHTML='';
+  [1,2,3,4,5,6,7,8,9,'',0,'⌫'].forEach(k=>{
+    const btn=document.createElement('button');
+    btn.className='pk'+(k===''?' ghost':'');
+    btn.textContent=k;
+    if(k===''){btn.disabled=true;btn.style.opacity='0';}
+    btn.addEventListener('click',()=>{
+      if(k==='⌫')pin=pin.slice(0,-1);
+      else if(k!==''&&pin.length<4)pin+=String(k);
+      updateDots(dotsEl,pin);
+      if(pin.length===4){
+        const p=pin;pin='';
+        updateDots(dotsEl,'');
+        setTimeout(()=>onComplete(p),150);
+      }
+    });
+    pad.appendChild(btn);
+  });
+}
+
+function updateDots(el,pin){
+  el.querySelectorAll('.pin-dot').forEach((d,i)=>d.classList.toggle('filled',i<pin.length));
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// SETUP
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function completeSetup(){
+  const name=document.getElementById('setup-name').value.trim();
+  const age=parseInt(document.getElementById('setup-age').value);
+  const equip=document.getElementById('setup-equip').value;
+  const phase=document.getElementById('setup-phase').value;
+  const st=document.getElementById('setup-status');
+  if(!name){toast('Enter a nickname',true);return;}
+  if(!age||age<10||age>65){toast('Enter a valid age',true);return;}
+  if(!setupPin||setupPin.length!==4){toast('Create your 4-digit PIN first',true);return;}
+
+  st.textContent='Creating profile...';
+  const ag=getAgeGroup(age);
+  const newProfile={nickname:name,age,ageGroup:ag,equip,phase,pin:setupPin};
+
+  if(db){
+    try{
+      // Check nickname taken
+      const{data:existing}=await db.from('athletes').select('id').eq('nickname',name).single();
+      if(existing){st.textContent='';toast('That nickname is taken — try another',true);return;}
+      const{data,error}=await db.from('athletes').insert([{...newProfile}]).select().single();
+      if(error&&error.code!=='23505') throw error;
+      if(data) newProfile.id=data.id;
+    }catch(e){
+      // Offline — save locally, sync later
+      addToQueue({type:'new_athlete',...newProfile});
+    }
+  }
+
+  lsSet('bca_profile',newProfile);
+  profile=newProfile;
+  st.textContent='';
+  postLogin();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// LOGIN
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function attemptLogin(pin){
+  if(pin===profile.pin){ postLogin(); return; }
+  // Try Supabase in case profile was updated on another device
+  if(db){
+    try{
+      const{data}=await db.from('athletes').select('*').eq('nickname',profile.nickname).eq('pin',pin).single();
+      if(data){ profile={...profile,...data}; lsSet('bca_profile',profile); postLogin(); return; }
+    }catch{}
+  }
+  toast('Wrong PIN',true);
+}
+
+function postLogin(){
+  retrySyncQueue();
+  renderHome();
+  showScreen('home');
+}
+
+function switchUser(){
+  lsSet('bca_profile',null);
+  profile=null;
+  setupPin='';
+  showScreen('setup');
+  buildPad('setup-pad','setup-dots',pin=>{setupPin=pin;});
+}
+
+function confirmLogout(){
+  if(confirm('Log out? Your data stays saved.')){
+    lsSet('bca_profile',null);
+    location.reload();
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// HOME
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function renderHome(){
+  const p=profile; const pg=PROGRAM[p.ageGroup];
+  const hr=new Date().getHours();
+  document.getElementById('h-greeting').textContent=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
+  document.getElementById('h-name').textContent=p.nickname.toUpperCase();
+  document.getElementById('h-group').textContent=pg.label+' · '+pg.sub;
+  const badge=document.getElementById('h-badge');
+  badge.textContent='Phase '+p.phase; badge.className='badge b'+p.phase.toLowerCase();
+  // Today
+  const dn=DAYS_OF_WEEK[new Date().getDay()];
+  const w=pg.workouts.find(x=>x.day===dn)||pg.workouts[0];
+  document.getElementById('h-day').textContent=dn.toUpperCase()+'  ·  '+(w.ruck?'RUCK DAY':w.recovery?'RECOVERY':'TRAINING');
+  document.getElementById('h-session').textContent=w.session;
+  document.getElementById('h-exercises').innerHTML=w.ex.slice(0,4).map(e=>'· '+e).join('<br>');
+  // Phase info
+  const ph=pg.phases[p.phase];
+  const labels={A:'Phase A — Endurance & Hypertrophy',B:'Phase B — Strength & Power',C:'Phase C — Endurance Return'};
+  const subs={A:'Months 1–3  ·  12–20 reps',B:'Months 4–9  ·  4–8 reps',C:'Months 10–12  ·  12–20 reps'};
+  document.getElementById('h-phase-lbl').textContent=labels[p.phase];
+  document.getElementById('h-phase-sub').textContent=subs[p.phase];
+  document.getElementById('h-phase-target').textContent=ph.sets+' sets × '+ph.reps;
+  // Segs
+  const segs=document.getElementById('h-segs');
+  segs.innerHTML=[...Array(3).fill(`<div class="pseg pa${p.phase==='A'?' active':''}"></div>`),
+    ...Array(6).fill(`<div class="pseg pb${p.phase==='B'?' active':''}"></div>`),
+    ...Array(3).fill(`<div class="pseg pc${p.phase==='C'?' active':''}"></div>`)].join('');
+  document.getElementById('h-ruck-target').textContent=pg.ruck.target;
+  // Weekly stats from DB
+  if(db){
+    try{
+      const weekAgo=new Date(); weekAgo.setDate(weekAgo.getDate()-7);
+      const[{data:wl},{data:rl}]=await Promise.all([
+        db.from('workout_logs').select('id',{count:'exact'}).eq('nickname',p.nickname).gte('created_at',weekAgo.toISOString()),
+        db.from('ruck_logs').select('id',{count:'exact'}).eq('nickname',p.nickname).gte('created_at',weekAgo.toISOString())
+      ]);
+      document.getElementById('h-wk-sessions').textContent=wl?.length??'—';
+      document.getElementById('h-wk-rucks').textContent=rl?.length??'—';
+    }catch{}
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// WORKOUT
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderWorkout(){
+  const p=profile; const pg=PROGRAM[p.ageGroup];
+  const ph=pg.phases[p.phase];
+  const badge=document.getElementById('w-badge');
+  badge.textContent='Phase '+p.phase; badge.className='badge b'+p.phase.toLowerCase();
+  document.getElementById('w-target').textContent=ph.sets+' sets × '+ph.reps+' reps  ·  Rest: '+ph.rest+'  ·  '+ph.load;
+
+  const tabs=document.getElementById('w-day-tabs');
+  tabs.innerHTML='';
+  const todayName=DAYS_OF_WEEK[new Date().getDay()];
+  let defaultIdx=0;
+
+  pg.workouts.forEach((w,i)=>{
+    if(w.recovery) return;
+    const t=document.createElement('div');
+    t.className='dtab';
+    t.textContent=w.day.slice(0,3).toUpperCase()+(w.ruck?' 🎒':'');
+    if(w.day===todayName){t.classList.add('active');defaultIdx=i;}
+    t.addEventListener('click',()=>{
+      tabs.querySelectorAll('.dtab').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      activeWorkoutDay=i;
+      renderExercises(w,ph);
+    });
+    tabs.appendChild(t);
+  });
+
+  const trainWorkouts=pg.workouts.filter(w=>!w.recovery);
+  activeWorkoutDay=defaultIdx;
+  renderExercises(trainWorkouts.find(w=>w.day===todayName)||trainWorkouts[0], ph);
+}
+
+function renderExercises(workout,ph){
+  const list=document.getElementById('w-exercise-list');
+  if(workout.ruck){
+    list.innerHTML=`<div style="padding:28px 16px;text-align:center;">
+      <div style="font-size:44px;margin-bottom:12px;">🎒</div>
+      <div style="font-family:var(--fh);font-size:20px;font-weight:700;margin-bottom:8px;">RUCK / HIKE DAY</div>
+      <p style="font-size:14px;color:var(--muted);line-height:1.6;">${workout.ex[0]}</p>
+      <button class="btn btn-gold" onclick="nav('ruck')" style="margin-top:20px;max-width:240px;margin-left:auto;margin-right:auto;">LOG THIS RUCK →</button>
+    </div>`; return;
+  }
+  const sets=parseInt(ph.sets.split('–')[0])||3;
+  list.innerHTML='';
+  workout.ex.forEach((ex,i)=>{
+    const el=document.createElement('div');
+    el.className='ex-item';
+    let setsHTML=`<div class="ex-target">${ph.sets} sets × ${ph.reps} reps  ·  Rest ${ph.rest}</div>`;
+    setsHTML+=`<div class="set-grid"><div class="set-lbl">Set</div><div class="set-lbl">Reps</div><div class="set-lbl">Weight</div><div class="set-lbl">✓</div></div>`;
+    for(let s=1;s<=Math.min(sets+1,5);s++){
+      setsHTML+=`<div class="set-grid">
+        <div style="text-align:center;font-family:var(--fh);font-size:13px;color:var(--muted);">${s}</div>
+        <input type="number" class="set-in" id="ex${i}s${s}r" placeholder="—" inputmode="numeric">
+        <input type="number" class="set-in" id="ex${i}s${s}w" placeholder="—" inputmode="decimal" step="2.5">
+        <button class="set-chk" id="ex${i}s${s}c" onclick="toggleChk(this,'${i}')"></button>
+      </div>`;
+    }
+    el.innerHTML=`<div class="ex-hdr" onclick="this.nextElementSibling.classList.toggle('open')">
+      <span class="ex-num">${i+1}</span>
+      <span class="ex-name">${ex}</span>
+      <span class="ex-status" id="exst${i}">○</span>
+    </div><div class="ex-body">${setsHTML}</div>`;
+    list.appendChild(el);
+  });
+}
+
+function toggleChk(btn,exIdx){
+  btn.classList.toggle('done');
+  btn.textContent=btn.classList.contains('done')?'✓':'';
+  const all=document.querySelectorAll(`[id^="ex${exIdx}s"][id$="c"]`);
+  const st=document.getElementById('exst'+exIdx);
+  if(st) st.textContent=Array.from(all).every(c=>c.classList.contains('done'))?'✓':'○';
+}
+
+async function saveWorkout(){
+  const p=profile; const pg=PROGRAM[p.ageGroup];
+  const trainW=pg.workouts.filter(w=>!w.recovery);
+  const activeTab=document.querySelector('#w-day-tabs .dtab.active');
+  const dayAbbr=activeTab?.textContent.replace('🎒','').trim();
+  const workout=pg.workouts.find(w=>w.day.slice(0,3).toUpperCase()===dayAbbr)||trainW[0];
+  if(!workout||workout.ruck){toast('Switch to a training day to log',true);return;}
+
+  const exercises=[];
+  workout.ex.forEach((ex,i)=>{
+    const sets=[];
+    let s=1;
+    while(document.getElementById(`ex${i}s${s}r`)){
+      const r=document.getElementById(`ex${i}s${s}r`).value;
+      const w=document.getElementById(`ex${i}s${s}w`).value;
+      const done=document.getElementById(`ex${i}s${s}c`)?.classList.contains('done');
+      if(r||w||done) sets.push({set:s,reps:r,weight:w,done});
+      s++;
+    }
+    exercises.push({name:ex,sets});
+  });
+
+  const log={
+    athlete_id:p.id||null,nickname:p.nickname,age_group:p.ageGroup,
+    phase:'Phase '+p.phase,day:workout.day,session:workout.session,
+    exercises,notes:document.getElementById('w-notes').value,equipment:p.equip
+  };
+
+  const btn=document.getElementById('w-save-btn');
+  btn.textContent='SAVING...'; btn.disabled=true;
+
+  if(db){
+    try{
+      await db.from('workout_logs').insert([log]);
+      toast('Session saved ✓');
+    }catch{
+      addToQueue({type:'workout',...log});
+      toast('Saved offline — will sync shortly');
+    }
+  } else {
+    addToQueue({type:'workout',...log});
+    toast('Saved locally ✓');
+  }
+
+  btn.textContent='SAVE SESSION ✓'; btn.disabled=false;
+  document.getElementById('w-notes').value='';
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RUCK
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function saveRuck(){
+  const p=profile;
+  const log={
+    athlete_id:p.id||null,nickname:p.nickname,age_group:p.ageGroup,
+    phase:'Phase '+p.phase,
+    ruck_date:document.getElementById('r-date').value||today(),
+    duration:parseInt(document.getElementById('r-dur').value)||null,
+    distance:parseFloat(document.getElementById('r-dist').value)||null,
+    pack_weight:parseInt(document.getElementById('r-wt').value)||null,
+    elevation:parseInt(document.getElementById('r-elev').value)||null,
+    avg_hr:parseInt(document.getElementById('r-hr').value)||null,
+    rpe:parseInt(document.getElementById('r-rpe').value),
+    notes:document.getElementById('r-notes').value
+  };
+
+  if(db){
+    try{
+      await db.from('ruck_logs').insert([log]);
+      toast('Ruck logged 🎒');
+    }catch{
+      addToQueue({type:'ruck',...log});
+      toast('Saved offline — will sync');
+    }
+  }else{
+    addToQueue({type:'ruck',...log});
+    toast('Ruck saved locally ✓');
+  }
+
+  ['r-dur','r-dist','r-wt','r-elev','r-hr','r-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('r-rpe').value=7;
+  document.getElementById('r-rpe-val').textContent='7';
+  document.getElementById('r-date').value=today();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// HISTORY
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function renderHistory(){
+  const list=document.getElementById('history-list');
+  const sync=document.getElementById('h-sync-status');
+  list.innerHTML='<div class="loading">Loading...</div>';
+
+  let wLogs=[], rLogs=[];
+  if(db){
+    try{
+      const[{data:w},{data:r}]=await Promise.all([
+        db.from('workout_logs').select('*').eq('nickname',profile.nickname).order('created_at',{ascending:false}).limit(30),
+        db.from('ruck_logs').select('*').eq('nickname',profile.nickname).order('created_at',{ascending:false}).limit(20)
+      ]);
+      wLogs=w||[]; rLogs=r||[];
+      sync.textContent='✓ Synced'; sync.className='pill pill-green';
+    }catch{
+      sync.textContent='Offline'; sync.className='pill pill-red';
+    }
+  } else {
+    sync.textContent='No DB'; sync.className='pill pill-red';
+  }
+
+  const combined=[
+    ...wLogs.map(l=>({...l,_type:'workout'})),
+    ...rLogs.map(l=>({...l,_type:'ruck'}))
+  ].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+
+  if(!combined.length){
+    list.innerHTML='<div class="empty"><div class="empty-icon">📋</div><p>No sessions logged yet.<br>Complete your first workout above.</p></div>';
+    return;
+  }
+
+  list.innerHTML=combined.map(l=>{
+    const d=new Date(l.created_at);
+    const ds=d.toLocaleDateString('en-US',{month:'short',day:'numeric',weekday:'short'});
+    if(l._type==='ruck'){
+      return`<div class="hist-item"><div style="display:flex;align-items:center;gap:8px;">
+        <span class="pill pill-gold">🎒 RUCK</span><span style="font-family:var(--fh);font-size:11px;color:var(--muted);">${ds}</span></div>
+        <div class="hist-session">${l.duration||'?'} min · ${l.pack_weight||'?'} lb · ${l.elevation||'?'} ft gain</div>
+        <div class="hist-meta">RPE ${l.rpe||'?'} · ${l.notes||'No notes'}</div></div>`;
+    }
+    const exCount=Array.isArray(l.exercises)?l.exercises.filter(e=>e.sets?.length).length:0;
+    return`<div class="hist-item"><div style="display:flex;align-items:center;gap:8px;">
+      <span class="pill pill-green">💪 WORKOUT</span><span style="font-family:var(--fh);font-size:11px;color:var(--muted);">${ds}</span></div>
+      <div class="hist-session">${l.session||l.day}</div>
+      <div class="hist-meta">${exCount} exercises logged · ${l.phase||''} · ${l.notes||'No notes'}</div></div>`;
+  }).join('');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// SETTINGS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderSettings(){
+  const p=profile;
+  const eqL={bw:'BW Only',db:'BW + Dumbbells',bb:'Full Barbell'};
+  document.getElementById('s-profile-sub').textContent=p.nickname+' · Age '+p.age+' · '+PROGRAM[p.ageGroup].label;
+  document.getElementById('s-phase-sub').textContent='Phase '+p.phase+' · '+eqL[p.equip];
+  const q=getQueue();
+  document.getElementById('s-queue').textContent=q.length?q.length+' pending':'All synced ✓';
+}
+
+function toggleSub(id){
+  const el=document.getElementById(id);
+  const isOpen=el.style.display!=='none';
+  document.querySelectorAll('[id^="sub-"]').forEach(x=>x.style.display='none');
+  if(!isOpen){ el.style.display='block'; }
+  if(id==='sub-profile'){
+    document.getElementById('e-name').value=profile.nickname;
+    document.getElementById('e-age').value=profile.age;
+  } else if(id==='sub-phase'){
+    document.getElementById('e-phase').value=profile.phase;
+    document.getElementById('e-equip').value=profile.equip;
+  }
+}
+
+async function saveProfileEdit(){
+  const name=document.getElementById('e-name').value.trim();
+  const age=parseInt(document.getElementById('e-age').value);
+  if(!name||!age){toast('Fill in all fields',true);return;}
+  profile.nickname=name; profile.age=age; profile.ageGroup=getAgeGroup(age);
+  lsSet('bca_profile',profile);
+  if(db&&profile.id){
+    try{await db.from('athletes').update({nickname:name,age,age_group:profile.ageGroup}).eq('id',profile.id);}catch{}
+  }
+  toggleSub('sub-profile'); renderSettings(); toast('Profile updated ✓');
+}
+
+async function savePhaseEdit(){
+  profile.phase=document.getElementById('e-phase').value;
+  profile.equip=document.getElementById('e-equip').value;
+  lsSet('bca_profile',profile);
+  if(db&&profile.id){
+    try{await db.from('athletes').update({phase:profile.phase,equip:profile.equip}).eq('id',profile.id);}catch{}
+  }
+  toggleSub('sub-phase'); renderSettings(); toast('Phase updated ✓');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// COACH DASHBOARD
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function buildCoachPinScreen(){
+  buildPad('cp-pad','cp-dots', pin=>{
+    if(pin===COACH_PIN){ showScreen('coach'); loadCoachData(); }
+    else toast('Incorrect coach PIN',true);
+  });
+}
+
+async function loadCoachData(){
+  if(!db){ toast('Database not configured',true); return; }
+  try{
+    const weekAgo=new Date(); weekAgo.setDate(weekAgo.getDate()-7);
+    const[{data:athletes},{data:wLogs},{data:rLogs}]=await Promise.all([
+      db.from('athletes').select('*').order('created_at',{ascending:false}),
+      db.from('workout_logs').select('*').order('created_at',{ascending:false}).limit(100),
+      db.from('ruck_logs').select('*').order('created_at',{ascending:false}).limit(50)
+    ]);
+    allAthletes=athletes||[];
+    allCoachLogs=[
+      ...(wLogs||[]).map(l=>({...l,_type:'workout'})),
+      ...(rLogs||[]).map(l=>({...l,_type:'ruck'}))
+    ].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+
+    // Stats
+    document.getElementById('c-total').textContent=allAthletes.length;
+    const wkW=allCoachLogs.filter(l=>l._type==='workout'&&new Date(l.created_at)>=weekAgo);
+    const wkR=allCoachLogs.filter(l=>l._type==='ruck'&&new Date(l.created_at)>=weekAgo);
+    document.getElementById('c-wk-sessions').textContent=wkW.length;
+    document.getElementById('c-wk-rucks').textContent=wkR.length;
+
+    // Group pills
+    const groups={};
+    allAthletes.forEach(a=>{ groups[a.age_group]=(groups[a.age_group]||0)+1; });
+    document.getElementById('c-group-pills').innerHTML=
+      Object.entries(groups).sort().map(([g,n])=>`<span class="pill pill-green">${g}: ${n}</span>`).join('');
+
+    renderAthletesList(allAthletes);
+    renderLogsList(allCoachLogs);
+  }catch(e){
+    toast('Error loading data',true);
+    console.error(e);
+  }
+}
+
+function renderAthletesList(athletes){
+  const el=document.getElementById('c-athletes-list');
+  if(!athletes.length){el.innerHTML='<div class="empty"><p>No athletes yet.</p></div>';return;}
+  el.innerHTML=athletes.map(a=>{
+    const initials=a.nickname.slice(0,2).toUpperCase();
+    const phaseColors={A:'var(--pa-t)',B:'var(--pb-t)',C:'var(--pc-t)'};
+    const lastLog=allCoachLogs.find(l=>l.nickname===a.nickname);
+    const lastDate=lastLog?new Date(lastLog.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'Never';
+    return`<div class="athlete-row">
+      <div class="athlete-avatar" style="color:${phaseColors[a.phase]||'var(--pa-t)'};">${initials}</div>
+      <div class="athlete-info">
+        <div class="athlete-name">${a.nickname}</div>
+        <div class="athlete-meta">${PROGRAM[a.age_group]?.label||a.age_group} · Phase ${a.phase} · Last: ${lastDate}</div>
+      </div>
+      <span class="badge b${(a.phase||'a').toLowerCase()}" style="font-size:10px;">Ph ${a.phase}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderLogsList(logs){
+  const el=document.getElementById('c-logs-list');
+  if(!logs.length){el.innerHTML='<div class="empty"><p>No logs yet.</p></div>';return;}
+  el.innerHTML=logs.slice(0,50).map(l=>{
+    const d=new Date(l.created_at);
+    const ds=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const dotColor=l._type==='ruck'?'var(--amber)':'var(--accent)';
+    const detail=l._type==='ruck'
+      ?`${l.duration||'?'}min · ${l.pack_weight||'?'}lb · ${l.elevation||'?'}ft`
+      :`${l.session||l.day} · ${l.phase||''}`;
+    return`<div class="log-row">
+      <div class="log-dot" style="background:${dotColor};margin-top:6px;"></div>
+      <div class="log-body">
+        <div class="log-name">${l.nickname} <span style="color:var(--muted);font-weight:400;font-size:12px;">· ${ds}</span></div>
+        <div class="log-detail">${l._type==='ruck'?'🎒 Ruck':'💪 Workout'} · ${detail}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+let activeCoachFilter={type:'all',group:null};
+function filterLogs(type,el){
+  document.querySelectorAll('#c-filter-row .ftab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  activeCoachFilter.type=type; activeCoachFilter.group=null;
+  let filtered=allCoachLogs;
+  if(type==='workout') filtered=filtered.filter(l=>l._type==='workout');
+  if(type==='ruck') filtered=filtered.filter(l=>l._type==='ruck');
+  renderLogsList(filtered);
+}
+function filterCoachGroup(group,el){
+  document.querySelectorAll('#c-filter-row .ftab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderAthletesList(allAthletes.filter(a=>a.age_group===group));
+  renderLogsList(allCoachLogs.filter(l=>l.age_group===group));
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// SYNC QUEUE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function retrySyncQueue(){
+  if(!db) return;
+  const queue=getQueue();
+  if(!queue.length) return;
+  const failed=[];
+  for(const item of queue){
+    try{
+      if(item.type==='new_athlete'){
+        const{error}=await db.from('athletes').upsert([{
+          nickname:item.nickname,pin:item.pin,age:item.age,
+          age_group:item.ageGroup,equip:item.equip,phase:item.phase
+        }],{onConflict:'nickname',ignoreDuplicates:true});
+        if(error&&error.code!=='23505') throw error;
+      } else if(item.type==='workout'){
+        await db.from('workout_logs').insert([{
+          nickname:item.nickname,age_group:item.age_group,phase:item.phase,
+          day:item.day,session:item.session,exercises:item.exercises,
+          notes:item.notes,equipment:item.equipment
+        }]);
+      } else if(item.type==='ruck'){
+        await db.from('ruck_logs').insert([{
+          nickname:item.nickname,age_group:item.age_group,phase:item.phase,
+          ruck_date:item.ruck_date,duration:item.duration,distance:item.distance,
+          pack_weight:item.pack_weight,elevation:item.elevation,
+          avg_hr:item.avg_hr,rpe:item.rpe,notes:item.notes
+        }]);
+      }
+    }catch{ failed.push(item); }
+  }
+  lsSet('bca_sync_queue',failed);
+  if(failed.length<queue.length) toast(`Synced ${queue.length-failed.length} item(s) ✓`);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// TOAST
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let toastTimer;
+function toast(msg,isErr=false){
+  clearTimeout(toastTimer);
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.className='show'+(isErr?' err':'');
+  toastTimer=setTimeout(()=>el.className='',3000);
+}
+</script>
+</body>
+</html>
