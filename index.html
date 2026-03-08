@@ -451,6 +451,11 @@ code{background:var(--surface);border:1px solid var(--border);border-radius:4px;
       <div class="set-body"><div class="set-lbl">Phase & Equipment</div><div class="set-sub" id="s-phase-sub"></div></div>
       <span class="set-arrow">›</span>
     </div>
+    <div class="set-item" onclick="nav('myprogram')">
+      <span class="set-icon">📝</span>
+      <div class="set-body"><div class="set-lbl">My Program</div><div class="set-sub" id="s-program-sub">BCA Default Program</div></div>
+      <span class="set-arrow">›</span>
+    </div>
     <div class="set-item" onclick="nav('instructions')">
       <span class="set-icon">📖</span>
       <div class="set-body"><div class="set-lbl">Setup Guide</div><div class="set-sub">GitHub + Supabase instructions</div></div>
@@ -664,6 +669,26 @@ const COACH_PIN   = '7391';</div>
   </div>
 </div>
 
+<!-- ══════════════════════════════════ MY PROGRAM ══ -->
+<div id="screen-myprogram" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="nav('settings')">‹</button>
+    <h2>My Program</h2>
+    <button onclick="saveCustomProgram()" style="background:none;border:none;color:var(--accent);font-family:var(--fh);font-size:12px;font-weight:700;letter-spacing:.08em;cursor:pointer;padding:4px 8px;">SAVE</button>
+  </div>
+  <div style="padding:12px 16px 6px;">
+    <div style="display:flex;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:3px;gap:3px;">
+      <button id="cp-bca-btn" onclick="setProgMode('bca')" style="flex:1;padding:9px;border:none;border-radius:6px;font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.06em;cursor:pointer;transition:all .15s;text-transform:uppercase;"></button>
+      <button id="cp-my-btn" onclick="setProgMode('custom')" style="flex:1;padding:9px;border:none;border-radius:6px;font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.06em;cursor:pointer;transition:all .15s;text-transform:uppercase;"></button>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;">Build your own weekly schedule. Your phase targets (sets, reps, rest) still apply to your exercises.</p>
+  </div>
+  <div id="cp-builder" style="margin-top:4px;"></div>
+  <div style="padding:8px 16px 24px;">
+    <button class="btn btn-ghost" onclick="addCustomDay()">+ ADD DAY</button>
+  </div>
+</div>
+
 <script>
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // PROGRAM DATA
@@ -809,6 +834,7 @@ function nav(id){
   else if(id==='history') renderHistory();
   else if(id==='settings') renderSettings();
   else if(id==='coach-pin') buildCoachPinScreen();
+  else if(id==='myprogram') renderMyProgram();
   showScreen(id);
 }
 
@@ -891,7 +917,7 @@ async function attemptLogin(pin){
   if(db){
     try{
       const{data}=await db.from('athletes').select('*').eq('nickname',profile.nickname).eq('pin',pin).single();
-      if(data){ profile={...profile,...data}; lsSet('bca_profile',profile); postLogin(); return; }
+      if(data){ profile={...profile,...data,ageGroup:data.age_group||profile.ageGroup,customProgram:data.custom_program||profile.customProgram||null,useCustom:data.use_custom||profile.useCustom||false}; lsSet('bca_profile',profile); postLogin(); return; }
     }catch{}
   }
   toast('Wrong PIN',true);
@@ -958,7 +984,9 @@ function verifyReturningPin(pin){
       ageGroup: returningAthleteData.age_group,
       equip: returningAthleteData.equip,
       phase: returningAthleteData.phase,
-      pin: returningAthleteData.pin
+      pin: returningAthleteData.pin,
+      customProgram: returningAthleteData.custom_program||null,
+      useCustom: returningAthleteData.use_custom||false
     };
     lsSet('bca_profile', profile);
     returningAthleteData = null;
@@ -992,7 +1020,8 @@ async function renderHome(){
   badge.textContent='Phase '+p.phase; badge.className='badge b'+p.phase.toLowerCase();
   // Today
   const dn=DAYS_OF_WEEK[new Date().getDay()];
-  const w=pg.workouts.find(x=>x.day===dn)||pg.workouts[0];
+  const schedule=getWorkoutSchedule();
+  const w=schedule.find(x=>x.day===dn)||schedule[0];
   document.getElementById('h-day').textContent=dn.toUpperCase()+'  ·  '+(w.ruck?'RUCK DAY':w.recovery?'RECOVERY':'TRAINING');
   document.getElementById('h-session').textContent=w.session;
   document.getElementById('h-exercises').innerHTML=w.ex.slice(0,4).map(e=>'· '+e).join('<br>');
@@ -1038,7 +1067,8 @@ function renderWorkout(){
   const todayName=DAYS_OF_WEEK[new Date().getDay()];
   let defaultIdx=0;
 
-  pg.workouts.forEach((w,i)=>{
+  const schedule=getWorkoutSchedule();
+  schedule.forEach((w,i)=>{
     if(w.recovery) return;
     const t=document.createElement('div');
     t.className='dtab';
@@ -1053,7 +1083,7 @@ function renderWorkout(){
     tabs.appendChild(t);
   });
 
-  const trainWorkouts=pg.workouts.filter(w=>!w.recovery);
+  const trainWorkouts=schedule.filter(w=>!w.recovery);
   activeWorkoutDay=defaultIdx;
   renderExercises(trainWorkouts.find(w=>w.day===todayName)||trainWorkouts[0], ph);
 }
@@ -1102,10 +1132,11 @@ function toggleChk(btn,exIdx){
 
 async function saveWorkout(){
   const p=profile; const pg=PROGRAM[p.ageGroup];
-  const trainW=pg.workouts.filter(w=>!w.recovery);
+  const schedule=getWorkoutSchedule();
+  const trainW=schedule.filter(w=>!w.recovery);
   const activeTab=document.querySelector('#w-day-tabs .dtab.active');
   const dayAbbr=activeTab?.textContent.replace('🎒','').trim();
-  const workout=pg.workouts.find(w=>w.day.slice(0,3).toUpperCase()===dayAbbr)||trainW[0];
+  const workout=schedule.find(w=>w.day.slice(0,3).toUpperCase()===dayAbbr)||trainW[0];
   if(!workout||workout.ruck){toast('Switch to a training day to log',true);return;}
 
   const exercises=[];
@@ -1253,6 +1284,9 @@ function renderSettings(){
   document.getElementById('s-phase-sub').textContent='Phase '+p.phase+' · '+eqL[p.equip];
   const q=getQueue();
   document.getElementById('s-queue').textContent=q.length?q.length+' pending':'All synced ✓';
+  const days=p.customProgram?.days?.length||0;
+  document.getElementById('s-program-sub').textContent=
+    p.useCustom&&days?'My Program active · '+days+' days':'BCA Default Program';
 }
 
 function toggleSub(id){
@@ -1438,6 +1472,122 @@ async function retrySyncQueue(){
   }
   lsSet('bca_queue',failed);
   if(failed.length<queue.length) toast(`Synced ${queue.length-failed.length} item(s) ✓`);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CUSTOM PROGRAM
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let customDays = [];
+
+function getWorkoutSchedule(){
+  if(profile.useCustom && profile.customProgram?.days?.length)
+    return profile.customProgram.days;
+  return PROGRAM[profile.ageGroup].workouts;
+}
+
+function renderMyProgram(){
+  customDays = profile.customProgram?.days
+    ? JSON.parse(JSON.stringify(profile.customProgram.days))
+    : [];
+  _updateProgToggle();
+  renderCustomDays();
+}
+
+function _updateProgToggle(){
+  const bcaBtn=document.getElementById('cp-bca-btn');
+  const myBtn=document.getElementById('cp-my-btn');
+  const useCustom=profile.useCustom&&customDays.length>0;
+  bcaBtn.textContent='BCA Program';
+  myBtn.textContent='My Program';
+  bcaBtn.style.cssText='flex:1;padding:9px;border:none;border-radius:6px;font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.06em;cursor:pointer;transition:all .15s;text-transform:uppercase;background:'+(useCustom?'transparent':'var(--accent)')+';color:'+(useCustom?'var(--muted)':'#fff')+';';
+  myBtn.style.cssText='flex:1;padding:9px;border:none;border-radius:6px;font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.06em;cursor:pointer;transition:all .15s;text-transform:uppercase;background:'+(useCustom?'var(--accent)':'transparent')+';color:'+(useCustom?'#fff':'var(--muted)')+';';
+}
+
+function setProgMode(mode){
+  if(mode==='custom'&&!customDays.length){toast('Add at least one day first',true);return;}
+  profile.useCustom=(mode==='custom');
+  _updateProgToggle();
+}
+
+function renderCustomDays(){
+  const container=document.getElementById('cp-builder');
+  if(!customDays.length){
+    container.innerHTML='<div class="empty" style="padding:28px 24px;"><div class="empty-icon">📋</div><p>No days yet.<br>Tap below to start building.</p></div>';
+    return;
+  }
+  const esc=s=>s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  container.innerHTML=customDays.map((d,i)=>`
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-family:var(--fh);font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.08em;">DAY ${i+1}</div>
+        <button onclick="removeCustomDay(${i})" style="background:none;border:none;color:var(--danger);font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.06em;cursor:pointer;padding:4px 0;">REMOVE</button>
+      </div>
+      <div class="field">
+        <label>Day of Week</label>
+        <select onchange="customDays[${i}].day=this.value">
+          ${DAYS_OF_WEEK.map(day=>`<option value="${day}"${d.day===day?' selected':''}>${day}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field">
+        <label>Session Name</label>
+        <input type="text" value="${esc(d.session||'')}" placeholder="e.g. Push Day, Legs, Full Body" oninput="customDays[${i}].session=this.value" maxlength="40">
+      </div>
+      <label style="font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;">Exercises</label>
+      ${d.ex.map((ex,j)=>`
+        <div style="display:flex;gap:8px;margin-bottom:6px;">
+          <input type="text" value="${esc(ex)}" placeholder="Exercise name" oninput="customDays[${i}].ex[${j}]=this.value" style="flex:1;min-width:0;" maxlength="50">
+          <button onclick="removeExFromDay(${i},${j})" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);width:38px;height:44px;font-size:18px;cursor:pointer;flex-shrink:0;line-height:1;">×</button>
+        </div>
+      `).join('')}
+      <button onclick="addExToDay(${i})" style="background:none;border:1px dashed var(--border);color:var(--muted);font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.06em;padding:9px;border-radius:6px;cursor:pointer;width:100%;margin-top:2px;">+ ADD EXERCISE</button>
+    </div>
+  `).join('');
+}
+
+function addCustomDay(){
+  customDays.push({day:'Monday',session:'',ex:['']});
+  renderCustomDays();
+}
+
+function removeCustomDay(i){
+  customDays.splice(i,1);
+  if(!customDays.length) profile.useCustom=false;
+  _updateProgToggle();
+  renderCustomDays();
+}
+
+function addExToDay(i){
+  customDays[i].ex.push('');
+  renderCustomDays();
+}
+
+function removeExFromDay(dayIdx,exIdx){
+  customDays[dayIdx].ex.splice(exIdx,1);
+  if(!customDays[dayIdx].ex.length) customDays[dayIdx].ex=[''];
+  renderCustomDays();
+}
+
+async function saveCustomProgram(){
+  customDays=customDays.map(d=>({
+    ...d,
+    session:d.session.trim(),
+    ex:d.ex.map(e=>e.trim()).filter(e=>e)
+  }));
+  if(customDays.some(d=>!d.session)){toast('Give each day a session name',true);return;}
+  if(customDays.some(d=>!d.ex.length)){toast('Each day needs at least one exercise',true);return;}
+  profile.customProgram=customDays.length?{days:customDays}:null;
+  if(!customDays.length) profile.useCustom=false;
+  lsSet('bca_profile',profile);
+  if(db&&profile.id){
+    try{
+      await db.from('athletes').update({
+        custom_program:profile.customProgram,
+        use_custom:profile.useCustom
+      }).eq('id',profile.id);
+    }catch{}
+  }
+  toast('Program saved ✓');
+  nav('settings');
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
