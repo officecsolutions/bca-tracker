@@ -19,9 +19,9 @@
   3. Your 4-digit coach dashboard PIN
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
 <script>
-  const SUPABASE_URL  = 'YOUR_SUPABASE_URL';
-  const SUPABASE_KEY  = 'YOUR_SUPABASE_ANON_KEY';
-  const COACH_PIN     = '1234'; // ← change this before deploying
+  const SUPABASE_URL  = 'https://pvqemqukceerhurltyyy.supabase.co';
+  const SUPABASE_KEY  = 'sb_publishable_chzsrueGDyTxcaef5MjGUA_ZeKbRwtq';
+  const COACH_PIN     = '4047'; // ← change this before deploying
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -608,7 +608,7 @@ create table ruck_logs (
   nickname text,
   age_group text,
   phase text,
-  ruck_date text,
+  ruck_date date,
   duration int,
   distance numeric,
   pack_weight int,
@@ -997,8 +997,8 @@ async function renderHome(){
     try{
       const weekAgo=new Date(); weekAgo.setDate(weekAgo.getDate()-7);
       const[{data:wl},{data:rl}]=await Promise.all([
-        db.from('workout_logs').select('id',{count:'exact'}).eq('nickname',p.nickname).gte('created_at',weekAgo.toISOString()),
-        db.from('ruck_logs').select('id',{count:'exact'}).eq('nickname',p.nickname).gte('created_at',weekAgo.toISOString())
+        db.from('workout_logs').select('id',{count:'exact'}).eq(p.id?'athlete_id':'nickname',p.id||p.nickname).gte('created_at',weekAgo.toISOString()),
+        db.from('ruck_logs').select('id',{count:'exact'}).eq(p.id?'athlete_id':'nickname',p.id||p.nickname).gte('created_at',weekAgo.toISOString())
       ]);
       document.getElementById('h-wk-sessions').textContent=wl?.length??'—';
       document.getElementById('h-wk-rucks').textContent=rl?.length??'—';
@@ -1116,6 +1116,13 @@ async function saveWorkout(){
 
   if(db){
     try{
+      const dayStart=new Date();dayStart.setHours(0,0,0,0);
+      const{data:dup}=await db.from('workout_logs').select('id')
+        .eq(profile.id?'athlete_id':'nickname',profile.id||profile.nickname)
+        .eq('session',log.session).gte('created_at',dayStart.toISOString()).limit(1);
+      if(dup?.length&&!confirm('You already logged this session today. Save again?')){
+        btn.textContent='SAVE SESSION ✓';btn.disabled=false;return;
+      }
       await db.from('workout_logs').insert([log]);
       toast('Session saved ✓');
     }catch{
@@ -1180,8 +1187,8 @@ async function renderHistory(){
   if(db){
     try{
       const[{data:w},{data:r}]=await Promise.all([
-        db.from('workout_logs').select('*').eq('nickname',profile.nickname).order('created_at',{ascending:false}).limit(30),
-        db.from('ruck_logs').select('*').eq('nickname',profile.nickname).order('created_at',{ascending:false}).limit(20)
+        db.from('workout_logs').select('*').eq(profile.id?'athlete_id':'nickname',profile.id||profile.nickname).order('created_at',{ascending:false}).limit(30),
+        db.from('ruck_logs').select('*').eq(profile.id?'athlete_id':'nickname',profile.id||profile.nickname).order('created_at',{ascending:false}).limit(20)
       ]);
       wLogs=w||[]; rLogs=r||[];
       sync.textContent='✓ Synced'; sync.className='pill pill-green';
@@ -1332,10 +1339,16 @@ function renderAthletesList(athletes){
   }).join('');
 }
 
+let _currentLogs=[];let _logsShown=25;
 function renderLogsList(logs){
+  _currentLogs=logs;_logsShown=25;_renderLogsPage();
+}
+function _renderLogsPage(){
   const el=document.getElementById('c-logs-list');
-  if(!logs.length){el.innerHTML='<div class="empty"><p>No logs yet.</p></div>';return;}
-  el.innerHTML=logs.slice(0,50).map(l=>{
+  if(!_currentLogs.length){el.innerHTML='<div class="empty"><p>No logs yet.</p></div>';return;}
+  const visible=_currentLogs.slice(0,_logsShown);
+  const hasMore=_currentLogs.length>_logsShown;
+  el.innerHTML=visible.map(l=>{
     const d=new Date(l.created_at);
     const ds=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
     const dotColor=l._type==='ruck'?'var(--amber)':'var(--accent)';
@@ -1349,7 +1362,7 @@ function renderLogsList(logs){
         <div class="log-detail">${l._type==='ruck'?'🎒 Ruck':'💪 Workout'} · ${detail}</div>
       </div>
     </div>`;
-  }).join('');
+  }).join('')+(hasMore?`<div style="padding:12px 16px;text-align:center;"><button onclick="_logsShown+=25;_renderLogsPage();" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--fh);font-size:12px;font-weight:700;letter-spacing:.06em;padding:8px 20px;border-radius:6px;cursor:pointer;">LOAD MORE (${_currentLogs.length-_logsShown} remaining)</button></div>`:'');
 }
 
 let activeCoachFilter={type:'all',group:null};
@@ -1401,7 +1414,7 @@ async function retrySyncQueue(){
       }
     }catch{ failed.push(item); }
   }
-  lsSet('bca_sync_queue',failed);
+  lsSet('bca_queue',failed);
   if(failed.length<queue.length) toast(`Synced ${queue.length-failed.length} item(s) ✓`);
 }
 

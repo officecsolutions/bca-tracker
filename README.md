@@ -1,4 +1,4 @@
-[README.md](https://github.com/user-attachments/files/25806790/README.md)[Upload# Backcountry Athlete Tracker — PWA
+# Backcountry Athlete Tracker — PWA
 
 **Dan Go High Performance Framework · 46 Outdoors Mountain-Strength Method**  
 All 6 age groups · Phase-based periodization · Google Play / App Store-quality PWA
@@ -65,7 +65,7 @@ create table ruck_logs (
   nickname text,
   age_group text,
   phase text,
-  ruck_date text,
+  ruck_date date,
   duration int,
   distance numeric,
   pack_weight int,
@@ -79,6 +79,11 @@ create table ruck_logs (
 
 4. Go to **Table Editor** → click each table → disable RLS (Row Level Security)
 5. Go to **Settings → API** → copy your **Project URL** and **anon public key**
+
+> **Already have the database set up?** Run this migration in SQL Editor to fix the `ruck_date` column type:
+> ```sql
+> ALTER TABLE ruck_logs ALTER COLUMN ruck_date TYPE date USING ruck_date::date;
+> ```
 
 ---
 
@@ -151,4 +156,3 @@ To push updates to all athletes:
 | Supabase API | 2 million requests/month |
 
 For 100+ athletes this will never hit limits.
-ing README.md…]()
