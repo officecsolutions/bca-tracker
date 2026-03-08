@@ -622,7 +622,22 @@ create table ruck_logs (
 
     <div class="step"><div class="step-n">3</div><div class="step-b"><h4>Get Your API Keys</h4><p>In Supabase go to <strong style="color:var(--text);">Settings → API</strong>. Copy your <strong style="color:var(--text);">Project URL</strong> and your <strong style="color:var(--text);">anon/public key</strong>. You'll need these in Part 2.</p></div></div>
 
-    <div class="step"><div class="step-n">4</div><div class="step-b"><h4>Disable RLS (for simplicity)</h4><p>Go to <strong style="color:var(--text);">Table Editor</strong> → click each table → <strong style="color:var(--text);">RLS is on — click to disable</strong>. Do this for all 3 tables. This lets the app read/write freely with your anon key.</p></div></div>
+    <div class="step"><div class="step-n">4</div><div class="step-b"><h4>Enable Security Policies</h4><p>In <strong style="color:var(--text);">SQL Editor → New Query</strong>, paste and run:</p>
+      <div class="code-block">ALTER TABLE athletes     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE workout_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ruck_logs    ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "anon_read"   ON athletes FOR SELECT TO anon USING (true);
+CREATE POLICY "anon_insert" ON athletes FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "anon_update" ON athletes FOR UPDATE TO anon USING (true);
+
+CREATE POLICY "anon_read"   ON workout_logs FOR SELECT TO anon USING (true);
+CREATE POLICY "anon_insert" ON workout_logs FOR INSERT TO anon WITH CHECK (true);
+
+CREATE POLICY "anon_read"   ON ruck_logs FOR SELECT TO anon USING (true);
+CREATE POLICY "anon_insert" ON ruck_logs FOR INSERT TO anon WITH CHECK (true);</div>
+      <p style="margin-top:6px;">This blocks all deletes and prevents anyone from editing logged sessions.</p>
+    </div></div>
 
     <div style="font-family:var(--fh);font-size:16px;font-weight:700;color:var(--amber);letter-spacing:.06em;margin:20px 0 12px;">PART 2 — DEPLOY TO GITHUB PAGES</div>
 
@@ -850,7 +865,9 @@ async function completeSetup(){
       // Check nickname taken
       const{data:existing}=await db.from('athletes').select('id').eq('nickname',name).single();
       if(existing){st.textContent='';toast('That nickname is taken — try another',true);return;}
-      const{data,error}=await db.from('athletes').insert([{...newProfile}]).select().single();
+      const{data,error}=await db.from('athletes').insert([{
+        nickname:name,pin:setupPin,age,age_group:ag,equip,phase
+      }]).select().single();
       if(error&&error.code!=='23505') throw error;
       if(data) newProfile.id=data.id;
     }catch(e){
@@ -1398,6 +1415,11 @@ async function retrySyncQueue(){
           age_group:item.ageGroup,equip:item.equip,phase:item.phase
         }],{onConflict:'nickname',ignoreDuplicates:true});
         if(error&&error.code!=='23505') throw error;
+        // Populate id in localStorage if this profile still lacks one
+        if(profile&&profile.nickname===item.nickname&&!profile.id){
+          const{data:row}=await db.from('athletes').select('id').eq('nickname',item.nickname).single();
+          if(row){profile.id=row.id;lsSet('bca_profile',profile);}
+        }
       } else if(item.type==='workout'){
         await db.from('workout_logs').insert([{
           nickname:item.nickname,age_group:item.age_group,phase:item.phase,

@@ -77,10 +77,33 @@ create table ruck_logs (
 );
 ```
 
-4. Go to **Table Editor** → click each table → disable RLS (Row Level Security)
+4. In **SQL Editor → New Query**, paste and run this to enable security policies:
+
+```sql
+-- Enable RLS
+ALTER TABLE athletes     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE workout_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ruck_logs    ENABLE ROW LEVEL SECURITY;
+
+-- athletes: read (login lookup) + insert (new profile) + update (profile edits)
+CREATE POLICY "anon_read"   ON athletes FOR SELECT TO anon USING (true);
+CREATE POLICY "anon_insert" ON athletes FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "anon_update" ON athletes FOR UPDATE TO anon USING (true);
+
+-- workout_logs: append-only (no updates, no deletes)
+CREATE POLICY "anon_read"   ON workout_logs FOR SELECT TO anon USING (true);
+CREATE POLICY "anon_insert" ON workout_logs FOR INSERT TO anon WITH CHECK (true);
+
+-- ruck_logs: append-only (no updates, no deletes)
+CREATE POLICY "anon_read"   ON ruck_logs FOR SELECT TO anon USING (true);
+CREATE POLICY "anon_insert" ON ruck_logs FOR INSERT TO anon WITH CHECK (true);
+```
+
+This blocks all DELETEs and blocks edits to logged sessions. Reads and inserts work normally.
+
 5. Go to **Settings → API** → copy your **Project URL** and **anon public key**
 
-> **Already have the database set up?** Run this migration in SQL Editor to fix the `ruck_date` column type:
+> **Already have the database set up?** Run the RLS block above plus this migration to fix the `ruck_date` column type:
 > ```sql
 > ALTER TABLE ruck_logs ALTER COLUMN ruck_date TYPE date USING ruck_date::date;
 > ```
