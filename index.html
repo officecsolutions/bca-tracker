@@ -712,15 +712,15 @@ const PROGRAM = {
       C:{sets:'2',reps:'6–10',rest:'2 min',load:'Power hit — move with full intent and speed'}
     },
     workouts:[
-      {day:'Monday',session:'Lower Body',
-        ex:['Bodyweight Squat','Glute Bridge','Step-Up','Reverse Lunge'],
-        exC:['Bodyweight Squat','Step-Up']},
-      {day:'Wednesday',session:'Upper Body',
-        ex:['Push-Up','Inverted Row (table)','Pike Push-Up','Dead Bug'],
-        exC:['Push-Up','Inverted Row (table)']},
-      {day:'Friday',session:'Full Body',
-        ex:['Forward Lunge','Mountain Climber','Superman Hold','Plank Hold'],
-        exC:['Forward Lunge','Plank Hold']}
+      {day:'Monday',session:'Squat & Pull',
+        ex:['Bodyweight Squat','Reverse Lunge','Step-Up','Inverted Row (table)'],
+        exC:['Bodyweight Squat','Inverted Row (table)']},
+      {day:'Wednesday',session:'Bench & Row',
+        ex:['Push-Up','Pike Push-Up','Superman Hold','Dead Bug'],
+        exC:['Push-Up','Pike Push-Up']},
+      {day:'Friday',session:'Deadlift & Press',
+        ex:['Glute Bridge','Hip Hinge (bodyweight)','Mountain Climber','Pike Push-Up'],
+        exC:['Glute Bridge','Pike Push-Up']}
     ]},
   'basecamp':{label:'Basecamp',sub:'Building the Base — Dumbbells & Consistency',equip:'db',
     phases:{
@@ -729,15 +729,15 @@ const PROGRAM = {
       C:{sets:'2',reps:'6–10',rest:'2 min',load:'Power hit — heaviest weight you can control cleanly'}
     },
     workouts:[
-      {day:'Monday',session:'Lower Body',
-        ex:['Goblet Squat','Romanian Deadlift (DB)','Bulgarian Split Squat','Glute Bridge'],
-        exC:['Goblet Squat','Romanian Deadlift (DB)']},
-      {day:'Wednesday',session:'Upper Body',
-        ex:['DB Row','DB Overhead Press','Push-Up','Farmer\'s Carry (DB)'],
-        exC:['DB Row','DB Overhead Press']},
-      {day:'Friday',session:'Full Body',
-        ex:['DB Deadlift','DB Thruster','Step-Up (DB)','KB Swing'],
-        exC:['DB Deadlift','KB Swing']}
+      {day:'Monday',session:'Squat & Pull',
+        ex:['Goblet Squat','Bulgarian Split Squat','DB Row','Step-Up (DB)'],
+        exC:['Goblet Squat','DB Row']},
+      {day:'Wednesday',session:'Bench & Row',
+        ex:['DB Bench Press','DB Bent-Over Row','Push-Up','Farmer\'s Carry (DB)'],
+        exC:['DB Bench Press','DB Bent-Over Row']},
+      {day:'Friday',session:'Deadlift & Press',
+        ex:['Romanian Deadlift (DB)','DB Deadlift','DB Overhead Press','KB Swing'],
+        exC:['DB Deadlift','DB Overhead Press']}
     ]},
   'valley':{label:'Valley',sub:'Moving to the Bar — Intro Barbell',equip:'bb',
     phases:{
@@ -746,15 +746,15 @@ const PROGRAM = {
       C:{sets:'2',reps:'6–10',rest:'2 min',load:'Power hit — Barbell at 70%, controlled speed and intent'}
     },
     workouts:[
-      {day:'Monday',session:'Lower Body',
-        ex:['Goblet Squat or Back Squat (light)','Romanian Deadlift','Step-Up (loaded)','Glute Bridge'],
-        exC:['Back Squat (light)','Romanian Deadlift']},
-      {day:'Wednesday',session:'Upper Body',
-        ex:['Barbell Row (light)','Overhead Press (light)','Push-Up','Farmer\'s Carry'],
-        exC:['Barbell Row','Overhead Press']},
-      {day:'Friday',session:'Full Body',
-        ex:['Deadlift (light)','DB Thruster or Push Press','Step-Up','KB Swing'],
-        exC:['Deadlift (light)','KB Swing']}
+      {day:'Monday',session:'Squat & Pull',
+        ex:['Back Squat (light)','Reverse Lunge','Pull-Up','Step-Up (loaded)'],
+        exC:['Back Squat (light)','Pull-Up']},
+      {day:'Wednesday',session:'Bench & Row',
+        ex:['Barbell Bench Press (light)','Barbell Row (light)','Push-Up','Farmer\'s Carry'],
+        exC:['Bench Press (light)','Barbell Row']},
+      {day:'Friday',session:'Deadlift & Press',
+        ex:['Deadlift (light)','Romanian Deadlift','Overhead Press','KB Swing'],
+        exC:['Deadlift (light)','Overhead Press']}
     ]},
   'ridge':{label:'Ridge',sub:'Consistent Training — Building Real Power',equip:'bb',
     phases:{
@@ -763,15 +763,15 @@ const PROGRAM = {
       C:{sets:'2',reps:'6–10',rest:'2 min',load:'Power hit — Barbell at 80%, fast and crisp'}
     },
     workouts:[
-      {day:'Monday',session:'Lower Body',
-        ex:['Back Squat','Romanian Deadlift','Bulgarian Split Squat','Hip Thrust'],
-        exC:['Back Squat','Romanian Deadlift']},
-      {day:'Wednesday',session:'Upper Body',
-        ex:['Pull-Up','Overhead Press','Barbell Row','Farmer\'s Carry'],
-        exC:['Pull-Up','Overhead Press']},
-      {day:'Friday',session:'Full Body',
-        ex:['Conventional Deadlift','Push-Up (weighted)','Step-Up (loaded)','KB Swing'],
-        exC:['Conventional Deadlift','KB Swing']}
+      {day:'Monday',session:'Squat & Pull',
+        ex:['Back Squat','Bulgarian Split Squat','Pull-Up','Barbell Row'],
+        exC:['Back Squat','Pull-Up']},
+      {day:'Wednesday',session:'Bench & Row',
+        ex:['Barbell Bench Press','Pendlay Row','Weighted Push-Up','Farmer\'s Carry'],
+        exC:['Bench Press','Pendlay Row']},
+      {day:'Friday',session:'Deadlift & Press',
+        ex:['Conventional Deadlift','Hip Thrust','Overhead Press','KB Swing'],
+        exC:['Conventional Deadlift','Overhead Press']}
     ]},
   'summit':{label:'Summit',sub:'Experienced Lifter — Max Strength',equip:'bb',
     phases:{
@@ -780,15 +780,15 @@ const PROGRAM = {
       C:{sets:'2',reps:'6–10',rest:'2 min',load:'Power hit — Barbell at 85%, explosive intent'}
     },
     workouts:[
-      {day:'Monday',session:'Lower Body',
-        ex:['Back Squat','Deadlift','Lunge (loaded)','Hip Thrust (barbell)'],
-        exC:['Back Squat','Deadlift']},
-      {day:'Wednesday',session:'Upper Body',
-        ex:['Weighted Pull-Up','Push Press','Pendlay Row','Farmer\'s Carry'],
-        exC:['Weighted Pull-Up','Push Press']},
-      {day:'Friday',session:'Full Body',
-        ex:['Power Clean','Weighted Dip','Step-Up (heavy)','KB Swing (heavy)'],
-        exC:['Power Clean','KB Swing (heavy)']}
+      {day:'Monday',session:'Squat & Pull',
+        ex:['Back Squat','Lunge (loaded)','Weighted Pull-Up','Barbell Row'],
+        exC:['Back Squat','Weighted Pull-Up']},
+      {day:'Wednesday',session:'Bench & Row',
+        ex:['Barbell Bench Press','Pendlay Row','Weighted Dip','Farmer\'s Carry'],
+        exC:['Bench Press','Pendlay Row']},
+      {day:'Friday',session:'Deadlift & Press',
+        ex:['Power Clean','Conventional Deadlift','Push Press','KB Swing (heavy)'],
+        exC:['Power Clean','Push Press']}
     ]}
 };
 
