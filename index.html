@@ -263,18 +263,20 @@ code{background:var(--surface);border:1px solid var(--border);border-radius:4px;
     <div class="field"><label>Your Age</label>
       <input type="number" id="setup-age" placeholder="Age" min="10" max="65" inputmode="numeric">
     </div>
-    <div class="field"><label>Equipment Level</label>
+    <div class="field"><label>Fitness Tier</label>
       <select id="setup-equip">
-        <option value="bw">Bodyweight Only</option>
-        <option value="db">Bodyweight + Dumbbells</option>
-        <option value="bb" selected>Full Barbell Setup</option>
+        <option value="trailhead">Trailhead — Just Starting Out (Bodyweight)</option>
+        <option value="basecamp">Basecamp — Building the Base (Dumbbells)</option>
+        <option value="valley" selected>Valley — Intro Barbell</option>
+        <option value="ridge">Ridge — Consistent Training (Barbell)</option>
+        <option value="summit">Summit — Experienced Lifter (Barbell)</option>
       </select>
     </div>
     <div class="field"><label>Starting Phase</label>
       <select id="setup-phase">
-        <option value="A">Phase A — Endurance & Hypertrophy (Months 1–3)</option>
-        <option value="B">Phase B — Strength & Power (Months 4–9)</option>
-        <option value="C">Phase C — Endurance Return (Months 10–12)</option>
+        <option value="A">Phase A — Build (Months 1–3)</option>
+        <option value="B">Phase B — Strength (Months 4–9)</option>
+        <option value="C">Phase C — Power Hit (Months 10–12)</option>
       </select>
     </div>
     <div class="field">
@@ -377,8 +379,15 @@ code{background:var(--surface);border:1px solid var(--border);border-radius:4px;
     <div class="phase-segs" id="h-segs"></div>
   </div>
   <div class="card" style="background:linear-gradient(135deg,#182E18 0%,var(--card) 100%);">
-    <div style="font-family:var(--fh);font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;">🎒 6-Month Ruck Target</div>
-    <div style="font-family:var(--fh);font-size:14px;margin-top:6px;" id="h-ruck-target"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div>
+        <div style="font-family:var(--fh);font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;">🎒 Monthly Ruck</div>
+        <div style="font-family:var(--fh);font-size:18px;font-weight:700;margin-top:4px;" id="h-ruck-month"></div>
+      </div>
+      <div id="h-ruck-done" style="font-size:28px;"></div>
+    </div>
+    <div id="h-ruck-status" style="font-family:var(--fh);font-size:12px;color:var(--muted);margin-bottom:10px;">—</div>
+    <button class="btn btn-gold" onclick="nav('ruck')" style="padding:10px;font-size:13px;">LOG THIS MONTH'S RUCK 🎒</button>
   </div>
   <div style="height:6px;"></div>
 </div>
@@ -483,19 +492,21 @@ code{background:var(--surface);border:1px solid var(--border);border-radius:4px;
 
   <!-- Phase edit -->
   <div id="sub-phase" style="display:none;padding:0 16px;">
-    <div class="slabel">Update Phase & Equipment</div>
+    <div class="slabel">Update Phase & Tier</div>
     <div class="field"><label>Current Phase</label>
       <select id="e-phase">
-        <option value="A">Phase A — Endurance (Months 1–3)</option>
-        <option value="B">Phase B — Strength & Power (Months 4–9)</option>
-        <option value="C">Phase C — Endurance Return (Months 10–12)</option>
+        <option value="A">Phase A — Build (Months 1–3)</option>
+        <option value="B">Phase B — Strength (Months 4–9)</option>
+        <option value="C">Phase C — Power Hit (Months 10–12)</option>
       </select>
     </div>
-    <div class="field"><label>Equipment Level</label>
+    <div class="field"><label>Fitness Tier</label>
       <select id="e-equip">
-        <option value="bw">Bodyweight Only</option>
-        <option value="db">Bodyweight + Dumbbells</option>
-        <option value="bb">Full Barbell Setup</option>
+        <option value="trailhead">Trailhead — Just Starting Out</option>
+        <option value="basecamp">Basecamp — Building the Base</option>
+        <option value="valley">Valley — Intro Barbell</option>
+        <option value="ridge">Ridge — Consistent Training</option>
+        <option value="summit">Summit — Experienced Lifter</option>
       </select>
     </div>
     <button class="btn btn-primary" onclick="savePhaseEdit()" style="margin-bottom:8px;">SAVE</button>
@@ -543,12 +554,11 @@ code{background:var(--surface);border:1px solid var(--border);border-radius:4px;
     <div class="ftab active" onclick="filterLogs('all',this)">All Logs</div>
     <div class="ftab" onclick="filterLogs('workout',this)">Workouts</div>
     <div class="ftab" onclick="filterLogs('ruck',this)">Rucks</div>
-    <div class="ftab" onclick="filterCoachGroup('10-12',this)">10–12</div>
-    <div class="ftab" onclick="filterCoachGroup('13-16',this)">13–16</div>
-    <div class="ftab" onclick="filterCoachGroup('17-22',this)">17–22</div>
-    <div class="ftab" onclick="filterCoachGroup('23-27',this)">23–27</div>
-    <div class="ftab" onclick="filterCoachGroup('28-32',this)">28–32</div>
-    <div class="ftab" onclick="filterCoachGroup('33+',this)">33+</div>
+    <div class="ftab" onclick="filterCoachGroup('trailhead',this)">Trailhead</div>
+    <div class="ftab" onclick="filterCoachGroup('basecamp',this)">Basecamp</div>
+    <div class="ftab" onclick="filterCoachGroup('valley',this)">Valley</div>
+    <div class="ftab" onclick="filterCoachGroup('ridge',this)">Ridge</div>
+    <div class="ftab" onclick="filterCoachGroup('summit',this)">Summit</div>
   </div>
 
   <div class="slabel">Athletes</div>
@@ -695,70 +705,90 @@ const COACH_PIN   = '7391';</div>
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const DAYS_OF_WEEK = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const PROGRAM = {
-  '10-12':{label:'Ages 10–12',sub:'Foundation Builder',
-    phases:{A:{sets:'3',reps:'12–15',rest:'45–60s',load:'Bodyweight Only'},B:{sets:'3',reps:'4–8',rest:'90–120s',load:'BW + Pauses & Slow Eccentrics'},C:{sets:'3',reps:'12–15',rest:'45–60s',load:'Bodyweight Only'}},
-    ruck:{start:'5–10 lb daypack, 30 min',target:'20 min elevation gain w/ 10 lb pack by Month 6'},
+  'trailhead':{label:'Trailhead',sub:'Just Starting Out — Bodyweight Foundation',equip:'bw',
+    phases:{
+      A:{sets:'3',reps:'12–15',rest:'60s',load:'Bodyweight only — master the movement before adding load'},
+      B:{sets:'3',reps:'8–12',rest:'90s',load:'BW with tempo — slow negatives, control every rep'},
+      C:{sets:'2',reps:'6–10',rest:'2 min',load:'Power hit — move with full intent and speed'}
+    },
     workouts:[
-      {day:'Monday',session:'Lower Push',ex:['Bodyweight Squat','Forward Lunge','Calf Raise','Dead Bug']},
-      {day:'Wednesday',session:'Upper Pull + Core',ex:['Push-Up','Pike Push-Up','Plank Hold','Bird Dog']},
-      {day:'Friday',session:'Full Body',ex:['Inverted Row (table)','Jumping Jacks','Mountain Climbers','Superman Hold']},
-      {day:'Saturday',session:'Hike / Outdoor Activity',ex:['Trail walk 30–60 min'],ruck:true}
+      {day:'Monday',session:'Lower Body',
+        ex:['Bodyweight Squat','Glute Bridge','Step-Up','Reverse Lunge'],
+        exC:['Bodyweight Squat','Step-Up']},
+      {day:'Wednesday',session:'Upper Body',
+        ex:['Push-Up','Inverted Row (table)','Pike Push-Up','Dead Bug'],
+        exC:['Push-Up','Inverted Row (table)']},
+      {day:'Friday',session:'Full Body',
+        ex:['Forward Lunge','Mountain Climber','Superman Hold','Plank Hold'],
+        exC:['Forward Lunge','Plank Hold']}
     ]},
-  '13-16':{label:'Ages 13–16',sub:'Athletic Development',
-    phases:{A:{sets:'3',reps:'15–20',rest:'45–90s',load:'BW + Light Dumbbells'},B:{sets:'4',reps:'4–8',rest:'2–3 min',load:'DB → Light Barbell (Month 7+)'},C:{sets:'3',reps:'12–15',rest:'45–90s',load:'DB + Barbell Consolidation'}},
-    ruck:{start:'10–20 lb, 45 min',target:'45 min trail w/ 600 ft gain & 20 lb pack by Month 6'},
+  'basecamp':{label:'Basecamp',sub:'Building the Base — Dumbbells & Consistency',equip:'db',
+    phases:{
+      A:{sets:'3',reps:'10–15',rest:'60–90s',load:'Light dumbbells — learn the movement, add weight each week'},
+      B:{sets:'4',reps:'6–10',rest:'90s–2 min',load:'Moderate weight — push each set, track progress'},
+      C:{sets:'2',reps:'6–10',rest:'2 min',load:'Power hit — heaviest weight you can control cleanly'}
+    },
     workouts:[
-      {day:'Monday',session:'Lower Push',ex:['Goblet Squat','Bulgarian Split Squat','Glute Bridge','Calf Raise']},
-      {day:'Tuesday',session:'Upper Pull',ex:['DB Bent-Over Row','Inverted Row','Band Pull-Apart','Dead Bug']},
-      {day:'Thursday',session:'Lower Pull',ex:['Romanian Deadlift (DB)','Good Morning','Step-Up','Nordic Curl']},
-      {day:'Friday',session:'Upper Push',ex:['Push-Up','DB Overhead Press','Plank','Pallof Press (band)']},
-      {day:'Saturday',session:'Trail Hike / Ruck',ex:['45–60 min hike or loaded walk'],ruck:true}
+      {day:'Monday',session:'Lower Body',
+        ex:['Goblet Squat','Romanian Deadlift (DB)','Bulgarian Split Squat','Glute Bridge'],
+        exC:['Goblet Squat','Romanian Deadlift (DB)']},
+      {day:'Wednesday',session:'Upper Body',
+        ex:['DB Row','DB Overhead Press','Push-Up','Farmer\'s Carry (DB)'],
+        exC:['DB Row','DB Overhead Press']},
+      {day:'Friday',session:'Full Body',
+        ex:['DB Deadlift','DB Thruster','Step-Up (DB)','KB Swing'],
+        exC:['DB Deadlift','KB Swing']}
     ]},
-  '17-22':{label:'Ages 17–22',sub:'Peak Athletic Development',
-    phases:{A:{sets:'3–4',reps:'12–20',rest:'45–90s',load:'BW + DB + Barbell Submaximal'},B:{sets:'4–5',reps:'4–8',rest:'2–3 min',load:'Barbell at Working Intensity — Track 1RM'},C:{sets:'3–4',reps:'12–20',rest:'45–90s',load:'Barbell at 60–70% 1RM'}},
-    ruck:{start:'25–35 lb, 60–75 min, 2×/week',target:'90 min trail w/ 1,500 ft gain & 35 lb pack by Month 6'},
+  'valley':{label:'Valley',sub:'Moving to the Bar — Intro Barbell',equip:'bb',
+    phases:{
+      A:{sets:'3',reps:'10–12',rest:'75s',load:'Light barbell — get comfortable with the movement pattern'},
+      B:{sets:'3–4',reps:'6–10',rest:'90s–2 min',load:'Barbell at 50–65% 1RM — build consistency before weight'},
+      C:{sets:'2',reps:'6–10',rest:'2 min',load:'Power hit — Barbell at 70%, controlled speed and intent'}
+    },
     workouts:[
-      {day:'Monday',session:'Lower Push',ex:['Back Squat / Pistol Squat','Bulgarian Split Squat','Box Step-Up','Calf Raise']},
-      {day:'Tuesday',session:'Upper Pull',ex:['Pull-Up / Chin-Up','Barbell or DB Row','Face Pull','Farmer\'s Carry']},
-      {day:'Wednesday',session:'Conditioning',ex:['Loaded Carries 3×200m','Box Jumps','Hill Sprint','KB Swings']},
-      {day:'Thursday',session:'Lower Pull',ex:['Conventional Deadlift','Romanian Deadlift','Nordic Hamstring Curl','Hip Thrust']},
-      {day:'Friday',session:'Upper Push',ex:['Overhead Press','Push-Up (weighted)','Dip','Ab Wheel Rollout']},
-      {day:'Saturday',session:'Long Ruck',ex:['60–90 min ruck w/ 25–40 lb pack'],ruck:true},
-      {day:'Sunday',session:'Active Recovery',ex:['Stretching / Yoga / Zone 2 Walk'],recovery:true}
+      {day:'Monday',session:'Lower Body',
+        ex:['Goblet Squat or Back Squat (light)','Romanian Deadlift','Step-Up (loaded)','Glute Bridge'],
+        exC:['Back Squat (light)','Romanian Deadlift']},
+      {day:'Wednesday',session:'Upper Body',
+        ex:['Barbell Row (light)','Overhead Press (light)','Push-Up','Farmer\'s Carry'],
+        exC:['Barbell Row','Overhead Press']},
+      {day:'Friday',session:'Full Body',
+        ex:['Deadlift (light)','DB Thruster or Push Press','Step-Up','KB Swing'],
+        exC:['Deadlift (light)','KB Swing']}
     ]},
-  '23-27':{label:'Ages 23–27',sub:'Prime Performance · Backcountry Specialist',
-    phases:{A:{sets:'4',reps:'15–20',rest:'45–90s',load:'BW + DB + Moderate Barbell'},B:{sets:'5',reps:'4–8',rest:'2–3 min',load:'Barbell 70%→85% 1RM · 2 Ruck Days/Week'},C:{sets:'4',reps:'12–20',rest:'45–90s',load:'Hypertrophy Emphasis + Ruck Maintenance'}},
-    ruck:{start:'35–50 lb, 75–90 min, 2×/week',target:'2 hr trail w/ 2,000 ft gain & 50 lb pack by Month 6'},
+  'ridge':{label:'Ridge',sub:'Consistent Training — Building Real Power',equip:'bb',
+    phases:{
+      A:{sets:'3–4',reps:'10–12',rest:'75–90s',load:'Barbell at 60–70% 1RM — build the base'},
+      B:{sets:'4',reps:'5–8',rest:'2–3 min',load:'Barbell at working weight — track and add weekly'},
+      C:{sets:'2',reps:'6–10',rest:'2 min',load:'Power hit — Barbell at 80%, fast and crisp'}
+    },
     workouts:[
-      {day:'Monday',session:'Lower Push',ex:['Back Squat','Lunge (loaded)','Step-Up (loaded)','Calf Raise']},
-      {day:'Tuesday',session:'Upper Pull',ex:['Weighted Pull-Up','Pendlay Row','Farmer\'s Carry 3×60m','Band Pull-Apart']},
-      {day:'Wednesday',session:'Conditioning',ex:['Hill Sprints 8×30s','Loaded Box Step 3×15','KB Swing','Plank Tap']},
-      {day:'Thursday',session:'Lower Pull',ex:['Deadlift','Hip Thrust (barbell)','Nordic Hamstring Curl','Good Morning']},
-      {day:'Friday',session:'Upper Push',ex:['OHP','Weighted Dip','Archer / Plyo Push-Up','Pallof Press + L-Sit']},
-      {day:'Saturday',session:'Long Ruck',ex:['60–90 min ruck w/ 35–50 lb — technical terrain'],ruck:true},
-      {day:'Sunday',session:'Active Recovery',ex:['Mobility flow / Swimming / Zone 2 Cycling'],recovery:true}
+      {day:'Monday',session:'Lower Body',
+        ex:['Back Squat','Romanian Deadlift','Bulgarian Split Squat','Hip Thrust'],
+        exC:['Back Squat','Romanian Deadlift']},
+      {day:'Wednesday',session:'Upper Body',
+        ex:['Pull-Up','Overhead Press','Barbell Row','Farmer\'s Carry'],
+        exC:['Pull-Up','Overhead Press']},
+      {day:'Friday',session:'Full Body',
+        ex:['Conventional Deadlift','Push-Up (weighted)','Step-Up (loaded)','KB Swing'],
+        exC:['Conventional Deadlift','KB Swing']}
     ]},
-  '28-32':{label:'Ages 28–32',sub:'Strength Maintenance · Injury-Resilient',
-    phases:{A:{sets:'3–4',reps:'12–15',rest:'60–90s',load:'Full-Body Moderate · 10 min Warmup Required'},B:{sets:'4',reps:'4–8',rest:'2–3 min',load:'Submaximal Barbell 80–85% 1RM · Deload Every 4th Week'},C:{sets:'3',reps:'12–15',rest:'60–90s',load:'Endurance Return + Body Comp · Joint Recovery'}},
-    ruck:{start:'30–45 lb, 60–75 min, 1–2×/week',target:'90 min trail w/ 1,500 ft gain & 45 lb pack by Month 6'},
+  'summit':{label:'Summit',sub:'Experienced Lifter — Max Strength',equip:'bb',
+    phases:{
+      A:{sets:'4',reps:'8–12',rest:'90s',load:'Barbell at 65–75% — controlled and strong'},
+      B:{sets:'4–5',reps:'4–6',rest:'2–3 min',load:'Barbell at 80–90% — max effort, track 1RM'},
+      C:{sets:'2',reps:'6–10',rest:'2 min',load:'Power hit — Barbell at 85%, explosive intent'}
+    },
     workouts:[
-      {day:'Monday',session:'Full Lower',ex:['Front Squat / Goblet Squat','Step-Up','Nordic Curl','Hip Thrust']},
-      {day:'Tuesday',session:'Upper Pull',ex:['Pull-Up','DB or Cable Row','Farmer\'s Carry 3×50m','Face Pull']},
-      {day:'Thursday',session:'Lower Alt.',ex:['Romanian Deadlift','Reverse Lunge','Copenhagen Plank','Glute Bridge']},
-      {day:'Friday',session:'Upper Push',ex:['OHP','Push-Up Variation','Cable/Band Chest Press','Pallof Press']},
-      {day:'Saturday',session:'Ruck / Hike',ex:['45–75 min ruck w/ 30–45 lb pack'],ruck:true},
-      {day:'Sunday',session:'Mobility',ex:['30–45 min — Hip flexors, T-spine, calves'],recovery:true}
-    ]},
-  '33+':{label:'Ages 33+',sub:'Longevity & Sustainable Performance',
-    phases:{A:{sets:'3',reps:'12–15',rest:'60–90s',load:'Full-Body + Zone 2 Cardio 3×/week'},B:{sets:'3–4',reps:'4–8',rest:'2–3 min',load:'Moderate-Heavy Unilateral Priority · Deload Every 3rd Week'},C:{sets:'3',reps:'12–15',rest:'60–90s',load:'60–70% All Loads · Recovery & Longevity Focus'}},
-    ruck:{start:'25–40 lb, 45–60 min, 1×/week',target:'60 min trail w/ 1,000 ft gain & 40 lb pack by Month 6'},
-    workouts:[
-      {day:'Monday',session:'Lower Body',ex:['Goblet / Single-Leg Squat','Step-Up','Hip Thrust','Calf Raise']},
-      {day:'Tuesday',session:'Upper Pull',ex:['Pull-Up / Lat Pulldown','DB Row','Farmer\'s Carry 2×40m','Dead Bug']},
-      {day:'Thursday',session:'Full Circuit',ex:['KB Swing','Push-Up','Reverse Lunge','Row','Plank (circuit)']},
-      {day:'Friday',session:'Upper Push',ex:['OHP','Push-Up','Shoulder Y-T-W','Band Rotations (Rotator Cuff)']},
-      {day:'Saturday',session:'Ruck / Hike',ex:['45–60 min ruck w/ 25–40 lb'],ruck:true},
-      {day:'Sunday',session:'Full Recovery',ex:['Yoga / Sauna / Active Walk'],recovery:true}
+      {day:'Monday',session:'Lower Body',
+        ex:['Back Squat','Deadlift','Lunge (loaded)','Hip Thrust (barbell)'],
+        exC:['Back Squat','Deadlift']},
+      {day:'Wednesday',session:'Upper Body',
+        ex:['Weighted Pull-Up','Push Press','Pendlay Row','Farmer\'s Carry'],
+        exC:['Weighted Pull-Up','Push Press']},
+      {day:'Friday',session:'Full Body',
+        ex:['Power Clean','Weighted Dip','Step-Up (heavy)','KB Swing (heavy)'],
+        exC:['Power Clean','KB Swing (heavy)']}
     ]}
 };
 
@@ -780,6 +810,17 @@ function initDB(){
 function getAgeGroup(a){
   if(a<=12)return'10-12';if(a<=16)return'13-16';if(a<=22)return'17-22';
   if(a<=27)return'23-27';if(a<=32)return'28-32';return'33+';
+}
+
+function getProgramTier(){
+  const key=profile.ageGroup;
+  if(PROGRAM[key]) return PROGRAM[key];
+  // Legacy fallback — old age groups and old tier names
+  const legacy={
+    '10-12':'trailhead','13-16':'basecamp','17-22':'valley','23-27':'ridge','28-32':'ridge','33+':'valley',
+    'expedition':'summit' // old 5th tier → summit
+  };
+  return PROGRAM[legacy[key]||'valley'];
 }
 
 function lsGet(k){ try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch{return null;} }
@@ -883,8 +924,9 @@ async function completeSetup(){
   if(!setupPin||setupPin.length!==4){toast('Create your 4-digit PIN first',true);return;}
 
   st.textContent='Creating profile...';
-  const ag=getAgeGroup(age);
-  const newProfile={nickname:name,age,ageGroup:ag,equip,phase,pin:setupPin};
+  const tier=equip; // setup-equip is now the tier selector
+  const tierEquip=PROGRAM[tier]?.equip||'bb';
+  const newProfile={nickname:name,age,ageGroup:tier,equip:tierEquip,phase,pin:setupPin};
 
   if(db){
     try{
@@ -892,7 +934,7 @@ async function completeSetup(){
       const{data:existing}=await db.from('athletes').select('id').eq('nickname',name).single();
       if(existing){st.textContent='';toast('That nickname is taken — try another',true);return;}
       const{data,error}=await db.from('athletes').insert([{
-        nickname:name,pin:setupPin,age,age_group:ag,equip,phase
+        nickname:name,pin:setupPin,age,age_group:tier,equip:tierEquip,phase
       }]).select().single();
       if(error&&error.code!=='23505') throw error;
       if(data) newProfile.id=data.id;
@@ -1011,7 +1053,7 @@ function confirmLogout(){
 // HOME
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 async function renderHome(){
-  const p=profile; const pg=PROGRAM[p.ageGroup];
+  const p=profile; const pg=getProgramTier();
   const hr=new Date().getHours();
   document.getElementById('h-greeting').textContent=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
   document.getElementById('h-name').textContent=p.nickname.toUpperCase();
@@ -1024,11 +1066,12 @@ async function renderHome(){
   const w=schedule.find(x=>x.day===dn)||schedule[0];
   document.getElementById('h-day').textContent=dn.toUpperCase()+'  ·  '+(w.ruck?'RUCK DAY':w.recovery?'RECOVERY':'TRAINING');
   document.getElementById('h-session').textContent=w.session;
-  document.getElementById('h-exercises').innerHTML=w.ex.slice(0,4).map(e=>'· '+e).join('<br>');
+  const exList=p.phase==='C'&&w.exC?w.exC:w.ex;
+  document.getElementById('h-exercises').innerHTML=exList.slice(0,4).map(e=>'· '+e).join('<br>');
   // Phase info
   const ph=pg.phases[p.phase];
-  const labels={A:'Phase A — Endurance & Hypertrophy',B:'Phase B — Strength & Power',C:'Phase C — Endurance Return'};
-  const subs={A:'Months 1–3  ·  12–20 reps',B:'Months 4–9  ·  4–8 reps',C:'Months 10–12  ·  12–20 reps'};
+  const labels={A:'Phase A — Build',B:'Phase B — Strength',C:'Phase C — Power Hit'};
+  const subs={A:'Months 1–3  ·  Foundation',B:'Months 4–9  ·  Strength',C:'Months 10–12  ·  Power'};
   document.getElementById('h-phase-lbl').textContent=labels[p.phase];
   document.getElementById('h-phase-sub').textContent=subs[p.phase];
   document.getElementById('h-phase-target').textContent=ph.sets+' sets × '+ph.reps;
@@ -1037,18 +1080,30 @@ async function renderHome(){
   segs.innerHTML=[...Array(3).fill(`<div class="pseg pa${p.phase==='A'?' active':''}"></div>`),
     ...Array(6).fill(`<div class="pseg pb${p.phase==='B'?' active':''}"></div>`),
     ...Array(3).fill(`<div class="pseg pc${p.phase==='C'?' active':''}"></div>`)].join('');
-  document.getElementById('h-ruck-target').textContent=pg.ruck.target;
-  // Weekly stats from DB
+  // Monthly ruck card
+  const now=new Date();
+  const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('h-ruck-month').textContent=monthNames[now.getMonth()]+' '+now.getFullYear();
+  // Weekly stats + monthly ruck from DB
   if(db){
     try{
       const weekAgo=new Date(); weekAgo.setDate(weekAgo.getDate()-7);
-      const[{data:wl},{data:rl}]=await Promise.all([
+      const monthStart=new Date(now.getFullYear(),now.getMonth(),1).toISOString().split('T')[0];
+      const[{data:wl},{data:rl},{data:rm}]=await Promise.all([
         db.from('workout_logs').select('id',{count:'exact'}).eq(p.id?'athlete_id':'nickname',p.id||p.nickname).gte('created_at',weekAgo.toISOString()),
-        db.from('ruck_logs').select('id',{count:'exact'}).eq(p.id?'athlete_id':'nickname',p.id||p.nickname).gte('created_at',weekAgo.toISOString())
+        db.from('ruck_logs').select('id',{count:'exact'}).eq(p.id?'athlete_id':'nickname',p.id||p.nickname).gte('created_at',weekAgo.toISOString()),
+        db.from('ruck_logs').select('id').eq(p.id?'athlete_id':'nickname',p.id||p.nickname).gte('ruck_date',monthStart).limit(1)
       ]);
       document.getElementById('h-wk-sessions').textContent=wl?.length??'—';
       document.getElementById('h-wk-rucks').textContent=rl?.length??'—';
-    }catch{}
+      const rucked=rm?.length>0;
+      document.getElementById('h-ruck-done').textContent=rucked?'✓':'';
+      document.getElementById('h-ruck-status').textContent=rucked?'Ruck complete this month!':'Not logged yet this month.';
+    }catch{
+      document.getElementById('h-ruck-status').textContent='';
+    }
+  } else {
+    document.getElementById('h-ruck-status').textContent='Log in to track monthly ruck.';
   }
 }
 
@@ -1056,7 +1111,7 @@ async function renderHome(){
 // WORKOUT
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderWorkout(){
-  const p=profile; const pg=PROGRAM[p.ageGroup];
+  const p=profile; const pg=getProgramTier();
   const ph=pg.phases[p.phase];
   const badge=document.getElementById('w-badge');
   badge.textContent='Phase '+p.phase; badge.className='badge b'+p.phase.toLowerCase();
@@ -1099,8 +1154,9 @@ function renderExercises(workout,ph){
     </div>`; return;
   }
   const sets=parseInt(ph.sets.split('–')[0])||3;
+  const exList=profile.phase==='C'&&workout.exC?workout.exC:workout.ex;
   list.innerHTML='';
-  workout.ex.forEach((ex,i)=>{
+  exList.forEach((ex,i)=>{
     const el=document.createElement('div');
     el.className='ex-item';
     let setsHTML=`<div class="ex-target">${ph.sets} sets × ${ph.reps} reps  ·  Rest ${ph.rest}</div>`;
@@ -1120,6 +1176,46 @@ function renderExercises(workout,ph){
     </div><div class="ex-body">${setsHTML}</div>`;
     list.appendChild(el);
   });
+
+  // Phase C — optional auxiliary exercises
+  if(profile.phase==='C'&&workout.exC){
+    const auxWrap=document.createElement('div');
+    auxWrap.id='aux-section';
+    auxWrap.style.cssText='margin:4px 16px 8px;';
+    auxWrap.innerHTML=`
+      <div style="font-family:var(--fh);font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;padding:8px 0 6px;">Optional Auxiliary (up to 3)</div>
+      <div id="aux-list"></div>
+      <button id="aux-add-btn" onclick="addAuxExercise()" style="background:none;border:1px dashed var(--border);color:var(--muted);font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.06em;padding:9px;border-radius:6px;cursor:pointer;width:100%;">+ ADD AUXILIARY EXERCISE</button>`;
+    list.appendChild(auxWrap);
+  }
+}
+
+function addAuxExercise(){
+  const auxList=document.getElementById('aux-list');
+  if(!auxList) return;
+  const n=auxList.querySelectorAll('.aux-item').length;
+  if(n>=3){toast('Max 3 auxiliary exercises',true);return;}
+  const ph=getProgramTier().phases[profile.phase];
+  const sets=parseInt(ph.sets.split('–')[0])||2;
+  const i=90+n;
+  const el=document.createElement('div');
+  el.className='ex-item aux-item';
+  let sH=`<div class="ex-target">Auxiliary · ${ph.sets} sets × ${ph.reps} reps</div>`;
+  sH+=`<div class="set-grid"><div class="set-lbl">Set</div><div class="set-lbl">Reps</div><div class="set-lbl">Weight</div><div class="set-lbl">✓</div></div>`;
+  for(let s=1;s<=Math.min(sets+1,4);s++){
+    sH+=`<div class="set-grid">
+      <div style="text-align:center;font-family:var(--fh);font-size:13px;color:var(--muted);">${s}</div>
+      <input type="number" class="set-in" id="ex${i}s${s}r" placeholder="—" inputmode="numeric">
+      <input type="number" class="set-in" id="ex${i}s${s}w" placeholder="—" inputmode="decimal" step="2.5">
+      <button class="set-chk" id="ex${i}s${s}c" onclick="toggleChk(this,'${i}')"></button>
+    </div>`;
+  }
+  el.innerHTML=`<div style="padding:12px 14px 8px;display:flex;align-items:center;gap:10px;">
+    <span style="font-family:var(--fh);font-size:11px;font-weight:700;background:var(--pc);color:var(--pc-t);border:1px solid #2A4A7A;padding:3px 8px;border-radius:4px;white-space:nowrap;">AUX ${n+1}</span>
+    <input type="text" id="aux-name-${n}" placeholder="Exercise name" maxlength="40" style="flex:1;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:var(--fh);font-size:14px;font-weight:600;padding:4px 0;outline:none;min-width:0;">
+  </div><div class="ex-body open">${sH}</div>`;
+  auxList.appendChild(el);
+  if(n+1>=3) document.getElementById('aux-add-btn').style.display='none';
 }
 
 function toggleChk(btn,exIdx){
@@ -1131,7 +1227,7 @@ function toggleChk(btn,exIdx){
 }
 
 async function saveWorkout(){
-  const p=profile; const pg=PROGRAM[p.ageGroup];
+  const p=profile; const pg=getProgramTier();
   const schedule=getWorkoutSchedule();
   const trainW=schedule.filter(w=>!w.recovery);
   const activeTab=document.querySelector('#w-day-tabs .dtab.active');
@@ -1139,8 +1235,9 @@ async function saveWorkout(){
   const workout=schedule.find(w=>w.day.slice(0,3).toUpperCase()===dayAbbr)||trainW[0];
   if(!workout||workout.ruck){toast('Switch to a training day to log',true);return;}
 
+  const exList=p.phase==='C'&&workout.exC?workout.exC:workout.ex;
   const exercises=[];
-  workout.ex.forEach((ex,i)=>{
+  exList.forEach((ex,i)=>{
     const sets=[];
     let s=1;
     while(document.getElementById(`ex${i}s${s}r`)){
@@ -1152,6 +1249,23 @@ async function saveWorkout(){
     }
     exercises.push({name:ex,sets});
   });
+  // Collect optional auxiliary exercises (Phase C)
+  if(p.phase==='C'){
+    document.querySelectorAll('.aux-item').forEach((item,n)=>{
+      const name=document.getElementById('aux-name-'+n)?.value?.trim();
+      if(!name) return;
+      const i=90+n; const sets=[];
+      let s=1;
+      while(document.getElementById(`ex${i}s${s}r`)){
+        const r=document.getElementById(`ex${i}s${s}r`).value;
+        const w=document.getElementById(`ex${i}s${s}w`).value;
+        const done=document.getElementById(`ex${i}s${s}c`)?.classList.contains('done');
+        if(r||w||done) sets.push({set:s,reps:r,weight:w,done});
+        s++;
+      }
+      exercises.push({name,sets,aux:true});
+    });
+  }
 
   const log={
     athlete_id:p.id||null,nickname:p.nickname,age_group:p.ageGroup,
@@ -1279,9 +1393,9 @@ async function renderHistory(){
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderSettings(){
   const p=profile;
-  const eqL={bw:'BW Only',db:'BW + Dumbbells',bb:'Full Barbell'};
-  document.getElementById('s-profile-sub').textContent=p.nickname+' · Age '+p.age+' · '+PROGRAM[p.ageGroup].label;
-  document.getElementById('s-phase-sub').textContent='Phase '+p.phase+' · '+eqL[p.equip];
+  const pg=getProgramTier();
+  document.getElementById('s-profile-sub').textContent=p.nickname+' · Age '+p.age+' · '+pg.label;
+  document.getElementById('s-phase-sub').textContent='Phase '+p.phase+' · '+pg.label;
   const q=getQueue();
   document.getElementById('s-queue').textContent=q.length?q.length+' pending':'All synced ✓';
   const days=p.customProgram?.days?.length||0;
@@ -1299,7 +1413,9 @@ function toggleSub(id){
     document.getElementById('e-age').value=profile.age;
   } else if(id==='sub-phase'){
     document.getElementById('e-phase').value=profile.phase;
-    document.getElementById('e-equip').value=profile.equip;
+    // Populate tier selector: use ageGroup key if it's a tier key, else default 'ridge'
+    const tierKey=PROGRAM[profile.ageGroup]?profile.ageGroup:'ridge';
+    document.getElementById('e-equip').value=tierKey;
   }
 }
 
@@ -1307,22 +1423,24 @@ async function saveProfileEdit(){
   const name=document.getElementById('e-name').value.trim();
   const age=parseInt(document.getElementById('e-age').value);
   if(!name||!age){toast('Fill in all fields',true);return;}
-  profile.nickname=name; profile.age=age; profile.ageGroup=getAgeGroup(age);
+  profile.nickname=name; profile.age=age;
   lsSet('bca_profile',profile);
   if(db&&profile.id){
-    try{await db.from('athletes').update({nickname:name,age,age_group:profile.ageGroup}).eq('id',profile.id);}catch{}
+    try{await db.from('athletes').update({nickname:name,age}).eq('id',profile.id);}catch{}
   }
   toggleSub('sub-profile'); renderSettings(); toast('Profile updated ✓');
 }
 
 async function savePhaseEdit(){
   profile.phase=document.getElementById('e-phase').value;
-  profile.equip=document.getElementById('e-equip').value;
+  const tier=document.getElementById('e-equip').value;
+  profile.ageGroup=tier;
+  profile.equip=PROGRAM[tier]?.equip||'bb';
   lsSet('bca_profile',profile);
   if(db&&profile.id){
-    try{await db.from('athletes').update({phase:profile.phase,equip:profile.equip}).eq('id',profile.id);}catch{}
+    try{await db.from('athletes').update({phase:profile.phase,age_group:tier,equip:profile.equip}).eq('id',profile.id);}catch{}
   }
-  toggleSub('sub-phase'); renderSettings(); toast('Phase updated ✓');
+  toggleSub('sub-phase'); renderSettings(); toast('Phase & tier updated ✓');
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1383,7 +1501,7 @@ function renderAthletesList(athletes){
       <div class="athlete-avatar" style="color:${phaseColors[a.phase]||'var(--pa-t)'};">${initials}</div>
       <div class="athlete-info">
         <div class="athlete-name">${a.nickname}</div>
-        <div class="athlete-meta">${PROGRAM[a.age_group]?.label||a.age_group} · Phase ${a.phase} · Last: ${lastDate}</div>
+        <div class="athlete-meta">${PROGRAM[a.age_group]?.label||a.age_group||'—'} · Phase ${a.phase} · Last: ${lastDate}</div>
       </div>
       <span class="badge b${(a.phase||'a').toLowerCase()}" style="font-size:10px;">Ph ${a.phase}</span>
     </div>`;
@@ -1482,7 +1600,7 @@ let customDays = [];
 function getWorkoutSchedule(){
   if(profile.useCustom && profile.customProgram?.days?.length)
     return profile.customProgram.days;
-  return PROGRAM[profile.ageGroup].workouts;
+  return getProgramTier().workouts;
 }
 
 function renderMyProgram(){
