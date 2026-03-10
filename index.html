@@ -721,10 +721,10 @@ const PROGRAM = {
       C:{sets:'2',reps:'6–10',rest:'2 min',load:'Power hit — move with full intent and speed'}
     },
     workouts:[
-      {day:'Monday',session:'Training'},{day:'Tuesday',session:'Training'},
-      {day:'Wednesday',session:'Training'},{day:'Thursday',session:'Training'},
-      {day:'Friday',session:'Training'},{day:'Saturday',session:'Training'},
-      {day:'Sunday',session:'Ruck / Recovery',ruck:true}
+      {day:'Day 1',session:'Training'},{day:'Day 2',session:'Training'},
+      {day:'Day 3',session:'Training'},{day:'Day 4',session:'Training'},
+      {day:'Day 5',session:'Training'},{day:'Day 6',session:'Training'},
+      {day:'Day 7',session:'Ruck / Recovery',ruck:true}
     ]},
   'basecamp':{label:'Basecamp',sub:'Building the Base — Dumbbells & Consistency',equip:'db',
     phases:{
@@ -733,10 +733,10 @@ const PROGRAM = {
       C:{sets:'2',reps:'6–10',rest:'2 min',load:'Power hit — heaviest weight you can control cleanly'}
     },
     workouts:[
-      {day:'Monday',session:'Training'},{day:'Tuesday',session:'Training'},
-      {day:'Wednesday',session:'Training'},{day:'Thursday',session:'Training'},
-      {day:'Friday',session:'Training'},{day:'Saturday',session:'Training'},
-      {day:'Sunday',session:'Ruck / Recovery',ruck:true}
+      {day:'Day 1',session:'Training'},{day:'Day 2',session:'Training'},
+      {day:'Day 3',session:'Training'},{day:'Day 4',session:'Training'},
+      {day:'Day 5',session:'Training'},{day:'Day 6',session:'Training'},
+      {day:'Day 7',session:'Ruck / Recovery',ruck:true}
     ]},
   'valley':{label:'Valley',sub:'Moving to the Bar — Intro Barbell',equip:'bb',
     phases:{
@@ -745,10 +745,10 @@ const PROGRAM = {
       C:{sets:'2',reps:'6–10',rest:'2 min',load:'Power hit — Barbell at 70%, controlled speed and intent'}
     },
     workouts:[
-      {day:'Monday',session:'Training'},{day:'Tuesday',session:'Training'},
-      {day:'Wednesday',session:'Training'},{day:'Thursday',session:'Training'},
-      {day:'Friday',session:'Training'},{day:'Saturday',session:'Training'},
-      {day:'Sunday',session:'Ruck / Recovery',ruck:true}
+      {day:'Day 1',session:'Training'},{day:'Day 2',session:'Training'},
+      {day:'Day 3',session:'Training'},{day:'Day 4',session:'Training'},
+      {day:'Day 5',session:'Training'},{day:'Day 6',session:'Training'},
+      {day:'Day 7',session:'Ruck / Recovery',ruck:true}
     ]},
   'ridge':{label:'Ridge',sub:'Consistent Training — Building Real Power',equip:'bb',
     phases:{
@@ -757,10 +757,10 @@ const PROGRAM = {
       C:{sets:'2',reps:'6–10',rest:'2 min',load:'Power hit — Barbell at 80%, fast and crisp'}
     },
     workouts:[
-      {day:'Monday',session:'Training'},{day:'Tuesday',session:'Training'},
-      {day:'Wednesday',session:'Training'},{day:'Thursday',session:'Training'},
-      {day:'Friday',session:'Training'},{day:'Saturday',session:'Training'},
-      {day:'Sunday',session:'Ruck / Recovery',ruck:true}
+      {day:'Day 1',session:'Training'},{day:'Day 2',session:'Training'},
+      {day:'Day 3',session:'Training'},{day:'Day 4',session:'Training'},
+      {day:'Day 5',session:'Training'},{day:'Day 6',session:'Training'},
+      {day:'Day 7',session:'Ruck / Recovery',ruck:true}
     ]},
   'summit':{label:'Summit',sub:'Experienced Lifter — Max Strength',equip:'bb',
     phases:{
@@ -769,10 +769,10 @@ const PROGRAM = {
       C:{sets:'2',reps:'6–10',rest:'2 min',load:'Power hit — Barbell at 85%, explosive intent'}
     },
     workouts:[
-      {day:'Monday',session:'Training'},{day:'Tuesday',session:'Training'},
-      {day:'Wednesday',session:'Training'},{day:'Thursday',session:'Training'},
-      {day:'Friday',session:'Training'},{day:'Saturday',session:'Training'},
-      {day:'Sunday',session:'Ruck / Recovery',ruck:true}
+      {day:'Day 1',session:'Training'},{day:'Day 2',session:'Training'},
+      {day:'Day 3',session:'Training'},{day:'Day 4',session:'Training'},
+      {day:'Day 5',session:'Training'},{day:'Day 6',session:'Training'},
+      {day:'Day 7',session:'Ruck / Recovery',ruck:true}
     ]}
 };
 
@@ -1045,10 +1045,10 @@ async function renderHome(){
   const badge=document.getElementById('h-badge');
   badge.textContent='Phase '+p.phase; badge.className='badge b'+p.phase.toLowerCase();
   // Today
-  const dn=DAYS_OF_WEEK[new Date().getDay()];
+  const todayLabel='Day '+(((new Date().getDay()+6)%7)+1);
   const schedule=getWorkoutSchedule();
-  const w=schedule.find(x=>x.day===dn)||schedule[0];
-  document.getElementById('h-day').textContent=dn.toUpperCase()+'  ·  '+(w.ruck?'RUCK DAY':'TRAINING');
+  const w=schedule.find(x=>x.day===todayLabel)||schedule[0];
+  document.getElementById('h-day').textContent=todayLabel.toUpperCase()+'  ·  '+(w.ruck?'RUCK DAY':'TRAINING');
   document.getElementById('h-session').textContent=w.ruck?'Ruck / Recovery':'Open Training';
   const ph=pg.phases[p.phase];
   document.getElementById('h-exercises').innerHTML=w.ruck
@@ -1103,15 +1103,16 @@ function renderWorkout(){
 
   const tabs=document.getElementById('w-day-tabs');
   tabs.innerHTML='';
-  const todayName=DAYS_OF_WEEK[new Date().getDay()];
+  // Mon=Day1 … Sun=Day7
+  const todayLabel='Day '+(((new Date().getDay()+6)%7)+1);
   let defaultWorkout=null;
 
   const schedule=getWorkoutSchedule();
   schedule.forEach(w=>{
     const t=document.createElement('div');
     t.className='dtab';
-    t.textContent=w.day.slice(0,3).toUpperCase()+(w.ruck?' 🎒':'');
-    if(w.day===todayName){t.classList.add('active');defaultWorkout=w;}
+    t.textContent=w.day+(w.ruck?' 🎒':'');
+    if(w.day===todayLabel){t.classList.add('active');defaultWorkout=w;}
     t.addEventListener('click',()=>{
       tabs.querySelectorAll('.dtab').forEach(x=>x.classList.remove('active'));
       t.classList.add('active');
@@ -1204,9 +1205,9 @@ function toggleChk(btn,prefix){
 async function saveWorkout(){
   const p=profile;
   const activeTab=document.querySelector('#w-day-tabs .dtab.active');
-  const dayAbbr=activeTab?.textContent.replace('🎒','').trim();
+  const dayLabel=activeTab?.textContent.replace('🎒','').trim();
   const schedule=getWorkoutSchedule();
-  const workout=schedule.find(w=>w.day.slice(0,3).toUpperCase()===dayAbbr)||schedule[0];
+  const workout=schedule.find(w=>w.day===dayLabel)||schedule[0];
   if(!workout||workout.ruck){toast('Switch to a training day to log',true);return;}
 
   const activity=(document.getElementById('w-activity')?.value||'').trim();
