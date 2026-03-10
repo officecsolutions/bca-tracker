@@ -1055,7 +1055,6 @@ async function renderHome(){
     ?'Get outside — ruck, hike, or active recovery'
     :`${ph.sets} sets × ${ph.reps}  ·  Rest: ${ph.rest}`;
   // Phase info
-  const ph=pg.phases[p.phase];
   const labels={A:'Phase A — Build',B:'Phase B — Strength',C:'Phase C — Power Hit'};
   const subs={A:'Months 1–3  ·  Foundation',B:'Months 4–9  ·  Strength',C:'Months 10–12  ·  Power'};
   document.getElementById('h-phase-lbl').textContent=labels[p.phase];
