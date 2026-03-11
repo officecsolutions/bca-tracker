@@ -732,6 +732,23 @@ const COACH_PIN   = '7391';</div>
   </div>
 </div>
 
+<!-- ══════════════════════════════════ EDIT LOG MODAL ══ -->
+<div id="edit-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);overflow-y:auto;">
+  <div style="max-width:480px;margin:0 auto;padding:16px 16px 60px;">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-top:36px;box-shadow:0 8px 40px rgba(0,0,0,.7);">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);">
+        <div style="font-family:var(--fh);font-size:16px;font-weight:800;letter-spacing:.05em;color:var(--accent);" id="edit-modal-title">EDIT SESSION</div>
+        <button onclick="closeEditModal()" style="background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;padding:0 4px;line-height:1;">×</button>
+      </div>
+      <div id="edit-modal-body" style="padding:14px 16px;max-height:65vh;overflow-y:auto;"></div>
+      <div style="padding:8px 16px 16px;display:flex;gap:8px;border-top:1px solid var(--border);">
+        <button class="btn btn-primary" onclick="saveEditLog()" style="flex:1;" id="edit-save-btn">SAVE CHANGES ✓</button>
+        <button class="btn btn-ghost" onclick="closeEditModal()" style="flex:1;">CANCEL</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // PROGRAM DATA
@@ -1158,6 +1175,10 @@ function renderWorkoutForm(workout,ph){
     <div style="padding:4px 16px 8px;">
       <button onclick="addFreeExercise()" style="background:none;border:1px dashed var(--border);color:var(--muted);font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.06em;padding:10px;border-radius:8px;cursor:pointer;width:100%;transition:border-color .15s;">+ ADD EXERCISE / SET TRACKING</button>
     </div>
+    <div style="padding:4px 16px 10px;">
+      <label style="font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;">Session Notes</label>
+      <textarea id="w-notes" rows="2" placeholder="How'd it feel? PR? Form notes..." style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:10px 12px;font-family:var(--fb);font-size:14px;width:100%;outline:none;resize:none;transition:border-color .2s,box-shadow .2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+    </div>
     <div style="padding:4px 16px 16px;">
       <button class="btn btn-primary" id="w-save-btn" onclick="saveWorkout()">SAVE SESSION ✓</button>
     </div>`;
@@ -1202,7 +1223,7 @@ async function saveWorkout(){
   if(!workout||workout.ruck){toast('Switch to a training day to log',true);return;}
 
   const activity=workout.day+' Training';
-  const notes='';
+  const notes=(document.getElementById('w-notes')?.value||'').trim();
 
   // Collect any manually added exercises
   const exercises=[];
@@ -1254,6 +1275,7 @@ async function saveWorkout(){
   btn.textContent='SAVE SESSION ✓'; btn.disabled=false;
   document.getElementById('w-exercise-list').innerHTML='';
   freeExCount=0;
+  const wn=document.getElementById('w-notes');if(wn)wn.value='';
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1383,6 +1405,7 @@ async function logWeight(){
 // PROGRESS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const _expandedItems = new Set();
+let _progressLogs = {};
 
 async function renderProgress(){
   renderWeightTracker();
@@ -1416,11 +1439,15 @@ async function renderProgress(){
     return;
   }
 
+  _progressLogs={};
   list.innerHTML=combined.map((l,idx)=>{
     const d=new Date(l.created_at);
     const ds=d.toLocaleDateString('en-US',{month:'short',day:'numeric',weekday:'short'});
     const uid='prog-item-'+idx;
     const isOpen=_expandedItems.has(uid);
+    _progressLogs[uid]=l;
+
+    const editBtn=`<button onclick="event.stopPropagation();openEditLog('${uid}')" title="Edit" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);padding:3px 8px;font-size:12px;cursor:pointer;line-height:1.5;font-family:var(--fh);font-weight:700;letter-spacing:.04em;flex-shrink:0;">✏ EDIT</button>`;
 
     if(l._type==='ruck'){
       const detail=`<div id="${uid}-detail" style="display:${isOpen?'block':'none'};border-top:1px solid var(--border);margin-top:10px;padding-top:10px;">
@@ -1436,7 +1463,7 @@ async function renderProgress(){
       return`<div class="hist-item" onclick="toggleProgressItem('${uid}')" style="cursor:pointer;">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
           <div style="display:flex;align-items:center;gap:8px;"><span class="pill pill-gold">🎒 RUCK</span><span style="font-family:var(--fh);font-size:11px;color:var(--muted);">${ds}</span></div>
-          <span id="${uid}-arrow" style="color:var(--muted);font-size:14px;transition:transform .2s;transform:${isOpen?'rotate(180deg)':'rotate(0deg)'};">▼</span>
+          <div style="display:flex;align-items:center;gap:8px;">${editBtn}<span id="${uid}-arrow" style="color:var(--muted);font-size:14px;transition:transform .2s;transform:${isOpen?'rotate(180deg)':'rotate(0deg)'};">▼</span></div>
         </div>
         <div class="hist-session">${l.duration||'?'} min · ${l.pack_weight||'?'} lb · ${l.elevation||'?'} ft gain</div>
         <div class="hist-meta">RPE ${l.rpe||'?'} · ${l.distance||'?'} mi</div>
@@ -1467,7 +1494,7 @@ async function renderProgress(){
     return`<div class="hist-item" onclick="toggleProgressItem('${uid}')" style="cursor:pointer;">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
         <div style="display:flex;align-items:center;gap:8px;"><span class="pill pill-green">💪 WORKOUT</span><span style="font-family:var(--fh);font-size:11px;color:var(--muted);">${ds}</span></div>
-        <span id="${uid}-arrow" style="color:var(--muted);font-size:14px;transition:transform .2s;transform:${isOpen?'rotate(180deg)':'rotate(0deg)'};">▼</span>
+        <div style="display:flex;align-items:center;gap:8px;">${editBtn}<span id="${uid}-arrow" style="color:var(--muted);font-size:14px;transition:transform .2s;transform:${isOpen?'rotate(180deg)':'rotate(0deg)'};">▼</span></div>
       </div>
       <div class="hist-session">${l.session||l.day}</div>
       <div class="hist-meta">${exCount} exercise${exCount!==1?'s':''} · ${l.phase||''}</div>
@@ -2103,6 +2130,121 @@ async function saveCustomProgram(){
   }
   toast('Program saved ✓');
   nav('settings');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// EDIT LOG
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let _editLogUID = null;
+
+function _esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+
+function openEditLog(uid){
+  const l=_progressLogs[uid];
+  if(!l) return;
+  _editLogUID=uid;
+  const title=document.getElementById('edit-modal-title');
+  const body=document.getElementById('edit-modal-body');
+
+  if(l._type==='workout'){
+    title.textContent='EDIT WORKOUT';
+    const exArr=Array.isArray(l.exercises)?l.exercises.filter(e=>e.name):[];
+    const exHtml=exArr.length?exArr.map((ex,i)=>{
+      const setsHtml=(ex.sets||[]).map((s,si)=>`
+        <div style="display:grid;grid-template-columns:28px 1fr 1fr;gap:6px;margin-bottom:5px;align-items:center;">
+          <div style="text-align:center;font-family:var(--fh);font-size:11px;color:var(--muted);">${s.set||si+1}</div>
+          <input type="number" class="set-in" id="eedit-${i}s${si}r" value="${_esc(s.reps)}" placeholder="Reps" inputmode="numeric" style="padding:8px 4px;">
+          <input type="number" class="set-in" id="eedit-${i}s${si}w" value="${_esc(s.weight)}" placeholder="Wt lb" inputmode="decimal" step="2.5" style="padding:8px 4px;">
+        </div>`).join('');
+      return`<div style="background:var(--surface);border-radius:9px;padding:10px 12px;margin-bottom:8px;">
+        <div style="display:grid;grid-template-columns:28px 1fr 1fr;gap:6px;margin-bottom:4px;">
+          <div></div>
+          <div style="font-family:var(--fh);font-size:9px;color:var(--muted);text-align:center;text-transform:uppercase;">Reps</div>
+          <div style="font-family:var(--fh);font-size:9px;color:var(--muted);text-align:center;text-transform:uppercase;">Wt (lb)</div>
+        </div>
+        <input type="text" id="eedit-name-${i}" value="${_esc(ex.name)}" style="font-family:var(--fh);font-size:14px;font-weight:700;margin-bottom:8px;background:var(--card);border:1px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--text);width:100%;outline:none;" placeholder="Exercise name">
+        ${setsHtml}
+      </div>`;
+    }).join(''):'<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">No exercises recorded</div>';
+
+    body.innerHTML=`
+      <div class="field"><label>Session Name</label>
+        <input type="text" id="edit-session" value="${_esc(l.session||l.day)}" maxlength="50" autocapitalize="words">
+      </div>
+      <div class="field"><label>Notes</label>
+        <textarea id="edit-notes" rows="3" placeholder="How did it feel? Form notes, PR...">${_esc(l.notes)}</textarea>
+      </div>
+      <div style="font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Exercises</div>
+      ${exHtml}`;
+  } else {
+    // ruck
+    title.textContent='EDIT RUCK';
+    body.innerHTML=`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;">
+        <div class="field"><label>Duration (min)</label><input type="number" id="edit-r-dur" value="${_esc(l.duration)}" inputmode="numeric"></div>
+        <div class="field"><label>Distance (mi)</label><input type="number" id="edit-r-dist" value="${_esc(l.distance)}" inputmode="decimal" step="0.1"></div>
+        <div class="field"><label>Pack Weight (lb)</label><input type="number" id="edit-r-wt" value="${_esc(l.pack_weight)}" inputmode="numeric"></div>
+        <div class="field"><label>Elevation Gain (ft)</label><input type="number" id="edit-r-elev" value="${_esc(l.elevation)}" inputmode="numeric"></div>
+        <div class="field"><label>Avg Heart Rate</label><input type="number" id="edit-r-hr" value="${_esc(l.avg_hr)}" inputmode="numeric"></div>
+        <div class="field"><label>RPE (1–10)</label><input type="number" id="edit-r-rpe" value="${_esc(l.rpe)||7}" min="1" max="10" inputmode="numeric"></div>
+      </div>
+      <div class="field"><label>Notes</label>
+        <textarea id="edit-r-notes" rows="3" placeholder="Trail, conditions, gear...">${_esc(l.notes)}</textarea>
+      </div>`;
+  }
+
+  document.getElementById('edit-modal').style.display='block';
+}
+
+function closeEditModal(){
+  document.getElementById('edit-modal').style.display='none';
+  _editLogUID=null;
+}
+
+async function saveEditLog(){
+  if(!_editLogUID) return;
+  const l=_progressLogs[_editLogUID];
+  if(!l||!l.id){ toast('Cannot edit — record has no ID',true); return; }
+
+  const btn=document.getElementById('edit-save-btn');
+  btn.textContent='SAVING...'; btn.disabled=true;
+
+  if(!db){ toast('No database connection',true); btn.textContent='SAVE CHANGES ✓'; btn.disabled=false; return; }
+
+  try{
+    if(l._type==='workout'){
+      const session=(document.getElementById('edit-session')?.value||'').trim()||l.session;
+      const notes=(document.getElementById('edit-notes')?.value||'').trim();
+      const exArr=Array.isArray(l.exercises)?l.exercises.filter(e=>e.name):[];
+      const exercises=exArr.map((ex,i)=>{
+        const name=(document.getElementById('eedit-name-'+i)?.value||ex.name).trim();
+        const sets=(ex.sets||[]).map((s,si)=>({
+          ...s,
+          reps:document.getElementById(`eedit-${i}s${si}r`)?.value||s.reps,
+          weight:document.getElementById(`eedit-${i}s${si}w`)?.value||s.weight
+        }));
+        return{name,sets};
+      });
+      await db.from('workout_logs').update({session,notes,exercises}).eq('id',l.id);
+    } else {
+      await db.from('ruck_logs').update({
+        duration:parseInt(document.getElementById('edit-r-dur').value)||null,
+        distance:parseFloat(document.getElementById('edit-r-dist').value)||null,
+        pack_weight:parseInt(document.getElementById('edit-r-wt').value)||null,
+        elevation:parseInt(document.getElementById('edit-r-elev').value)||null,
+        avg_hr:parseInt(document.getElementById('edit-r-hr').value)||null,
+        rpe:parseInt(document.getElementById('edit-r-rpe').value)||null,
+        notes:(document.getElementById('edit-r-notes').value||'').trim()
+      }).eq('id',l.id);
+    }
+    toast('Updated ✓');
+    closeEditModal();
+    renderProgress();
+  }catch(e){
+    toast('Update failed — add UPDATE policy in Supabase RLS',true);
+    console.error(e);
+    btn.textContent='SAVE CHANGES ✓'; btn.disabled=false;
+  }
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
