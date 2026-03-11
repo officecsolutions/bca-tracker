@@ -415,6 +415,31 @@ code{background:var(--surface);border:1px solid var(--border);border-radius:4px;
   <div class="topbar"><h2>My Progress</h2>
     <span id="h-sync-status" class="pill pill-green" style="font-size:10px;"></span>
   </div>
+
+  <!-- WEIGHT TRACKER -->
+  <div class="card" style="margin-top:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div>
+        <div style="font-family:var(--fh);font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;">⚖️ Body Weight</div>
+        <div style="display:flex;align-items:baseline;gap:6px;margin-top:4px;">
+          <span style="font-family:var(--fh);font-size:32px;font-weight:800;color:var(--accent);line-height:1;" id="wt-current">—</span>
+          <span style="font-family:var(--fh);font-size:13px;color:var(--muted);">lb</span>
+          <span style="font-family:var(--fh);font-size:11px;color:var(--muted);margin-left:4px;" id="wt-change"></span>
+        </div>
+        <div style="font-family:var(--fh);font-size:10px;color:var(--muted);margin-top:2px;" id="wt-date"></div>
+      </div>
+      <div style="text-align:right;">
+        <div id="wt-trend" style="font-family:var(--fh);font-size:11px;color:var(--muted);line-height:1.8;"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <input type="number" id="wt-input" placeholder="Enter weight (lb)" inputmode="decimal" step="0.1"
+        style="flex:1;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:var(--fb);font-size:15px;">
+      <button onclick="logWeight()" class="btn btn-primary btn-sm" style="white-space:nowrap;padding:10px 16px;font-size:12px;">LOG ✓</button>
+    </div>
+  </div>
+
+  <div class="slabel" style="margin-top:4px;">Session History</div>
   <div id="history-list"><div class="loading">Loading...</div></div>
 </div>
 
@@ -466,22 +491,17 @@ code{background:var(--surface);border:1px solid var(--border);border-radius:4px;
     </div>
     <div class="set-item" onclick="nav('myprogram')">
       <span class="set-icon">📝</span>
-      <div class="set-body"><div class="set-lbl">My Program</div><div class="set-sub" id="s-program-sub">BCA Default Program</div></div>
-      <span class="set-arrow">›</span>
-    </div>
-    <div class="set-item" onclick="nav('instructions')">
-      <span class="set-icon">📖</span>
-      <div class="set-body"><div class="set-lbl">Setup Guide</div><div class="set-sub">GitHub + Supabase instructions</div></div>
-      <span class="set-arrow">›</span>
-    </div>
-    <div class="set-item" onclick="nav('coach-pin')">
-      <span class="set-icon">🏔</span>
-      <div class="set-body"><div class="set-lbl">Coach Dashboard</div><div class="set-sub">PIN protected — coaches only</div></div>
+      <div class="set-body"><div class="set-lbl">My Custom Program</div><div class="set-sub" id="s-program-sub">BCA Default Program</div></div>
       <span class="set-arrow">›</span>
     </div>
     <div class="set-item" onclick="retrySyncQueue()">
       <span class="set-icon">🔄</span>
       <div class="set-body"><div class="set-lbl">Sync Pending Data</div><div class="set-sub" id="s-queue"></div></div>
+    </div>
+    <div class="set-item" id="coach-dashboard-item" onclick="nav('coach-pin')" style="display:none;">
+      <span class="set-icon">🏔</span>
+      <div class="set-body"><div class="set-lbl">Coach Dashboard</div><div class="set-sub">PIN protected</div></div>
+      <span class="set-arrow">›</span>
     </div>
   </div>
 
@@ -1134,31 +1154,11 @@ function renderWorkoutForm(workout,ph){
       <div style="font-family:var(--fh);font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;">Phase ${profile.phase} Target</div>
       <div style="font-family:var(--fh);font-size:13px;font-weight:600;margin-top:3px;">${ph.sets} sets × ${ph.reps}  ·  Rest ${ph.rest}  ·  ${ph.load}</div>
     </div>
-    <div style="padding:0 16px;">
-      <div class="field">
-        <label>Activity</label>
-        <input type="text" id="w-activity" placeholder="Back Squat, Trail Run, Climbing, Swim…" autocomplete="off" autocapitalize="words">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div class="field">
-          <label>Duration (min)</label>
-          <input type="number" id="w-duration" placeholder="45" inputmode="numeric">
-        </div>
-        <div class="field">
-          <label>RPE <span id="w-rpe-val" style="color:var(--accent);font-weight:700;">7</span>/10</label>
-          <input type="range" id="w-rpe" min="1" max="10" value="7" oninput="document.getElementById('w-rpe-val').textContent=this.value" style="padding:6px 0;border:none;background:none;cursor:pointer;width:100%;">
-        </div>
-      </div>
-    </div>
-    <div id="w-exercise-list" style="margin-top:2px;"></div>
-    <div style="padding:2px 16px 4px;">
+    <div id="w-exercise-list" style="margin-top:4px;"></div>
+    <div style="padding:4px 16px 8px;">
       <button onclick="addFreeExercise()" style="background:none;border:1px dashed var(--border);color:var(--muted);font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.06em;padding:10px;border-radius:8px;cursor:pointer;width:100%;transition:border-color .15s;">+ ADD EXERCISE / SET TRACKING</button>
     </div>
-    <div style="padding:8px 16px 8px;">
-      <div class="field">
-        <label>Notes</label>
-        <textarea id="w-notes" rows="3" placeholder="Distance, weight, splits, conditions, how it felt…"></textarea>
-      </div>
+    <div style="padding:4px 16px 16px;">
       <button class="btn btn-primary" id="w-save-btn" onclick="saveWorkout()">SAVE SESSION ✓</button>
     </div>`;
 }
@@ -1201,18 +1201,8 @@ async function saveWorkout(){
   const workout=schedule.find(w=>w.day===dayLabel)||schedule[0];
   if(!workout||workout.ruck){toast('Switch to a training day to log',true);return;}
 
-  const activity=(document.getElementById('w-activity')?.value||'').trim();
-  if(!activity){toast('Enter an activity name',true);return;}
-
-  const duration=parseInt(document.getElementById('w-duration')?.value)||null;
-  const rpe=parseInt(document.getElementById('w-rpe')?.value)||null;
-  let notes=document.getElementById('w-notes')?.value||'';
-
-  // Prepend duration/RPE to notes if provided
-  const meta=[];
-  if(duration) meta.push(duration+' min');
-  if(rpe) meta.push('RPE '+rpe);
-  if(meta.length) notes=[meta.join(' · '),notes].filter(Boolean).join(' — ');
+  const activity=workout.day+' Training';
+  const notes='';
 
   // Collect any manually added exercises
   const exercises=[];
@@ -1262,11 +1252,6 @@ async function saveWorkout(){
   }
 
   btn.textContent='SAVE SESSION ✓'; btn.disabled=false;
-  document.getElementById('w-activity').value='';
-  document.getElementById('w-duration').value='';
-  document.getElementById('w-rpe').value=7;
-  document.getElementById('w-rpe-val').textContent='7';
-  document.getElementById('w-notes').value='';
   document.getElementById('w-exercise-list').innerHTML='';
   freeExCount=0;
 }
@@ -1320,11 +1305,87 @@ async function saveRuck(){
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// WEIGHT TRACKER
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function getWeights(){
+  const key='bca_weights_'+(profile.id||profile.nickname);
+  return lsGet(key)||[];
+}
+function saveWeights(arr){
+  const key='bca_weights_'+(profile.id||profile.nickname);
+  lsSet(key,arr);
+}
+
+function renderWeightTracker(){
+  const weights=getWeights(); // [{weight, date}] newest first
+  const current=document.getElementById('wt-current');
+  const changeEl=document.getElementById('wt-change');
+  const dateEl=document.getElementById('wt-date');
+  const trendEl=document.getElementById('wt-trend');
+
+  if(!weights.length){
+    current.textContent='—';
+    changeEl.textContent='';
+    dateEl.textContent='No entries yet';
+    trendEl.innerHTML='';
+    return;
+  }
+
+  const latest=weights[0];
+  current.textContent=latest.weight;
+  dateEl.textContent=new Date(latest.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+  // Change vs previous
+  if(weights.length>1){
+    const diff=(latest.weight-weights[1].weight).toFixed(1);
+    const up=diff>0;
+    changeEl.textContent=(up?'▲ +':diff==0?'':'▼ ')+diff+' lb';
+    changeEl.style.color=up?'var(--danger)':'var(--accent)';
+  } else {
+    changeEl.textContent='';
+  }
+
+  // Last 4 entries as mini trend
+  trendEl.innerHTML=weights.slice(0,5).map((w,i)=>{
+    const d=new Date(w.date).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    return`<div style="color:${i===0?'var(--text)':'var(--muted)'};">${w.weight} lb <span style="font-size:9px;">${d}</span></div>`;
+  }).join('');
+}
+
+async function logWeight(){
+  const input=document.getElementById('wt-input');
+  const val=parseFloat(input.value);
+  if(!val||val<50||val>500){toast('Enter a valid weight',true);return;}
+
+  const entry={weight:val,date:new Date().toISOString()};
+  const weights=getWeights();
+  weights.unshift(entry);
+  saveWeights(weights);
+
+  // Sync to Supabase if connected
+  if(db){
+    try{
+      await db.from('weight_logs').insert([{
+        athlete_id:profile.id||null,
+        nickname:profile.nickname,
+        weight_lb:val,
+        logged_at:entry.date
+      }]);
+    }catch{}
+  }
+
+  input.value='';
+  renderWeightTracker();
+  toast('Weight logged ✓');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // PROGRESS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const _expandedItems = new Set();
 
 async function renderProgress(){
+  renderWeightTracker();
   const list=document.getElementById('history-list');
   const sync=document.getElementById('h-sync-status');
   list.innerHTML='<div class="loading">Loading...</div>';
@@ -1720,7 +1781,10 @@ function renderSettings(){
   document.getElementById('s-queue').textContent=q.length?q.length+' pending':'All synced ✓';
   const days=p.customProgram?.days?.length||0;
   document.getElementById('s-program-sub').textContent=
-    p.useCustom&&days?'My Program active · '+days+' days':'BCA Default Program';
+    p.useCustom&&days?'Custom program active · '+days+' days':'BCA Default Program';
+  // Coach dashboard only visible for Nick C
+  const coachItem=document.getElementById('coach-dashboard-item');
+  if(coachItem) coachItem.style.display=p.nickname==='Nick C'?'flex':'none';
 }
 
 function toggleSub(id){
