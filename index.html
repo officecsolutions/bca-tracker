@@ -2136,6 +2136,7 @@ async function saveCustomProgram(){
 // EDIT LOG
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 let _editLogUID = null;
+let _editNewExCount = 0;
 
 function _esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
 
@@ -2148,6 +2149,7 @@ function openEditLog(uid){
 
   if(l._type==='workout'){
     title.textContent='EDIT WORKOUT';
+    _editNewExCount=0;
     const exArr=Array.isArray(l.exercises)?l.exercises.filter(e=>e.name):[];
     const exHtml=exArr.length?exArr.map((ex,i)=>{
       const setsHtml=(ex.sets||[]).map((s,si)=>`
@@ -2175,7 +2177,9 @@ function openEditLog(uid){
         <textarea id="edit-notes" rows="3" placeholder="How did it feel? Form notes, PR...">${_esc(l.notes)}</textarea>
       </div>
       <div style="font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Exercises</div>
-      ${exHtml}`;
+      ${exHtml}
+      <div id="edit-new-ex-list"></div>
+      <button onclick="addEditExercise()" style="background:none;border:1px dashed var(--border);color:var(--muted);font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.06em;padding:10px;border-radius:8px;cursor:pointer;width:100%;transition:border-color .15s;margin-top:2px;">+ ADD EXERCISE</button>`;
   } else {
     // ruck
     title.textContent='EDIT RUCK';
@@ -2199,6 +2203,34 @@ function openEditLog(uid){
 function closeEditModal(){
   document.getElementById('edit-modal').style.display='none';
   _editLogUID=null;
+  _editNewExCount=0;
+}
+
+function addEditExercise(){
+  const list=document.getElementById('edit-new-ex-list');
+  if(!list) return;
+  const i=_editNewExCount++;
+  const sets=parseInt(getProgramTier().phases[profile.phase].sets.split('–')[0])||3;
+  let sH=`<div style="display:grid;grid-template-columns:28px 1fr 1fr;gap:6px;margin-bottom:4px;">
+    <div></div>
+    <div style="font-family:var(--fh);font-size:9px;color:var(--muted);text-align:center;text-transform:uppercase;">Reps</div>
+    <div style="font-family:var(--fh);font-size:9px;color:var(--muted);text-align:center;text-transform:uppercase;">Wt (lb)</div>
+  </div>`;
+  for(let s=1;s<=sets;s++){
+    sH+=`<div style="display:grid;grid-template-columns:28px 1fr 1fr;gap:6px;margin-bottom:5px;align-items:center;">
+      <div style="text-align:center;font-family:var(--fh);font-size:11px;color:var(--muted);">${s}</div>
+      <input type="number" class="set-in" id="enew${i}s${s}r" placeholder="—" inputmode="numeric" style="padding:8px 4px;">
+      <input type="number" class="set-in" id="enew${i}s${s}w" placeholder="—" inputmode="decimal" step="2.5" style="padding:8px 4px;">
+    </div>`;
+  }
+  const el=document.createElement('div');
+  el.id='enew-wrap-'+i;
+  el.style.cssText='background:var(--surface);border-radius:9px;padding:10px 12px;margin-bottom:8px;';
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+    <input type="text" id="enew-name-${i}" placeholder="Exercise name" autocomplete="off" autocapitalize="words" style="flex:1;font-family:var(--fh);font-size:14px;font-weight:700;background:var(--card);border:1px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--text);outline:none;">
+    <button onclick="document.getElementById('enew-wrap-${i}').remove()" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);width:34px;height:36px;font-size:18px;cursor:pointer;flex-shrink:0;line-height:1;">×</button>
+  </div>${sH}`;
+  list.appendChild(el);
 }
 
 async function saveEditLog(){
@@ -2224,6 +2256,21 @@ async function saveEditLog(){
           weight:document.getElementById(`eedit-${i}s${si}w`)?.value||s.weight
         }));
         return{name,sets};
+      });
+      // Collect any newly added exercises
+      document.querySelectorAll('[id^="enew-wrap-"]').forEach(wrap=>{
+        const idx=wrap.id.replace('enew-wrap-','');
+        const name=(document.getElementById('enew-name-'+idx)?.value||'').trim();
+        if(!name) return;
+        const sets=[];
+        let s=1;
+        while(document.getElementById(`enew${idx}s${s}r`)){
+          const r=document.getElementById(`enew${idx}s${s}r`).value;
+          const w=document.getElementById(`enew${idx}s${s}w`).value;
+          if(r||w) sets.push({set:s,reps:r,weight:w,done:false});
+          s++;
+        }
+        exercises.push({name,sets});
       });
       await db.from('workout_logs').update({session,notes,exercises}).eq('id',l.id);
     } else {
