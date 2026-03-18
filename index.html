@@ -194,7 +194,7 @@ code{background:var(--surface);border:1px solid var(--border);border-radius:4px;
 /* FILTER ROW */
 .filter-row{display:flex;gap:6px;padding:8px 16px;overflow-x:auto;scrollbar-width:none;}
 .filter-row::-webkit-scrollbar{display:none;}
-.ftab{flex-shrink:0;padding:5px 12px;border-radius:16px;font-family:var(--fh);font-size:11px;font-weight:600;letter-spacing:.05em;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);transition:all .15s;}
+.ftab{flex-shrink:0;padding:5px 12px;border-radius:16px;font-family:var(--fh);font-size:11px;font-weight:600;letter-spacing:.05em;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);transition:all .15s;-webkit-appearance:none;appearance:none;}
 .ftab.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:var(--accent);box-shadow:0 2px 8px rgba(114,192,64,.25);}
 
 /* TOAST */
@@ -448,6 +448,11 @@ code{background:var(--surface);border:1px solid var(--border);border-radius:4px;
   <div class="topbar">
     <button class="back-btn" onclick="nav('home')">‹</button>
     <h2>This Week</h2>
+    <div style="display:flex;gap:4px;">
+      <button onclick="_weekOffset--;renderWeekView()" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;font-family:var(--fh);font-size:13px;cursor:pointer;">‹</button>
+      <button onclick="_weekOffset=0;renderWeekView()" style="background:none;border:1px solid var(--border);color:var(--accent);border-radius:6px;padding:4px 8px;font-family:var(--fh);font-size:10px;font-weight:700;letter-spacing:.06em;cursor:pointer;">NOW</button>
+      <button onclick="if(_weekOffset<0){_weekOffset++;renderWeekView();}" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;font-family:var(--fh);font-size:13px;cursor:pointer;">›</button>
+    </div>
   </div>
   <div id="week-view-content"><div class="loading">Loading...</div></div>
 </div>
@@ -565,9 +570,9 @@ code{background:var(--surface);border:1px solid var(--border);border-radius:4px;
 
   <div style="padding:10px 16px 0;">
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;">
-      <div class="coach-stat"><div class="coach-stat-val" id="c-total" style="color:var(--accent);">—</div><div class="coach-stat-lbl">Athletes</div></div>
-      <div class="coach-stat"><div class="coach-stat-val" id="c-wk-sessions" style="color:var(--amber);">—</div><div class="coach-stat-lbl">Wk Sessions</div></div>
-      <div class="coach-stat"><div class="coach-stat-val" id="c-wk-rucks" style="color:var(--pa-t);">—</div><div class="coach-stat-lbl">Wk Rucks</div></div>
+      <div class="coach-stat" onclick="coachStatClick('athletes')" style="cursor:pointer;"><div class="coach-stat-val" id="c-total" style="color:var(--accent);">—</div><div class="coach-stat-lbl">Athletes</div></div>
+      <div class="coach-stat" onclick="coachStatClick('sessions')" style="cursor:pointer;"><div class="coach-stat-val" id="c-wk-sessions" style="color:var(--amber);">—</div><div class="coach-stat-lbl">Wk Sessions</div></div>
+      <div class="coach-stat" onclick="coachStatClick('rucks')" style="cursor:pointer;"><div class="coach-stat-val" id="c-wk-rucks" style="color:var(--pa-t);">—</div><div class="coach-stat-lbl">Wk Rucks</div></div>
     </div>
   </div>
 
@@ -575,14 +580,14 @@ code{background:var(--surface);border:1px solid var(--border);border-radius:4px;
   <div style="padding:0 16px 8px;display:flex;gap:6px;flex-wrap:wrap;" id="c-group-pills"></div>
 
   <div class="filter-row" id="c-filter-row">
-    <div class="ftab active" onclick="filterLogs('all',this)">All Logs</div>
-    <div class="ftab" onclick="filterLogs('workout',this)">Workouts</div>
-    <div class="ftab" onclick="filterLogs('ruck',this)">Rucks</div>
-    <div class="ftab" onclick="filterCoachGroup('trailhead',this)">Trailhead</div>
-    <div class="ftab" onclick="filterCoachGroup('basecamp',this)">Basecamp</div>
-    <div class="ftab" onclick="filterCoachGroup('valley',this)">Valley</div>
-    <div class="ftab" onclick="filterCoachGroup('ridge',this)">Ridge</div>
-    <div class="ftab" onclick="filterCoachGroup('summit',this)">Summit</div>
+    <button class="ftab ftab-type active" onclick="filterLogs('all',this)">All Logs</button>
+    <button class="ftab ftab-type" onclick="filterLogs('workout',this)">Workouts</button>
+    <button class="ftab ftab-type" onclick="filterLogs('ruck',this)">Rucks</button>
+    <button class="ftab ftab-group" onclick="filterCoachGroup('trailhead',this)">Trailhead</button>
+    <button class="ftab ftab-group" onclick="filterCoachGroup('basecamp',this)">Basecamp</button>
+    <button class="ftab ftab-group" onclick="filterCoachGroup('valley',this)">Valley</button>
+    <button class="ftab ftab-group" onclick="filterCoachGroup('ridge',this)">Ridge</button>
+    <button class="ftab ftab-group" onclick="filterCoachGroup('summit',this)">Summit</button>
   </div>
 
   <div class="slabel">Athletes</div>
@@ -593,113 +598,6 @@ code{background:var(--surface);border:1px solid var(--border);border-radius:4px;
   <div class="slabel">Recent Logs</div>
   <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;margin:0 16px 10px;overflow:hidden;" id="c-logs-list">
     <div class="loading">Loading...</div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════ INSTRUCTIONS ══ -->
-<div id="screen-instructions" class="screen">
-  <div class="topbar">
-    <button class="back-btn" onclick="nav('settings')">‹</button>
-    <h2>Setup Guide</h2>
-  </div>
-  <div style="padding:16px 16px 32px;">
-    <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px;">Follow these steps once to get your BCA app live on the web and connected to a database for all your athletes.</p>
-
-    <div style="background:var(--pb);border:1px solid #6A5A1A;border-radius:8px;padding:14px;margin-bottom:20px;">
-      <div style="font-family:var(--fh);font-size:13px;font-weight:700;color:var(--amber);letter-spacing:.06em;">BEFORE YOU START</div>
-      <p style="font-size:13px;color:var(--muted);margin-top:6px;line-height:1.5;">You need: a GitHub account (free) and a Supabase account (free at supabase.com). The whole setup takes about 20 minutes.</p>
-    </div>
-
-    <div style="font-family:var(--fh);font-size:16px;font-weight:700;color:var(--amber);letter-spacing:.06em;margin-bottom:12px;">PART 1 — SUPABASE DATABASE</div>
-
-    <div class="step"><div class="step-n">1</div><div class="step-b"><h4>Create Supabase Account</h4><p>Go to <code>supabase.com</code> → Sign up free → Create a new project. Name it <strong style="color:var(--text);">bca-tracker</strong>. Save your database password somewhere safe.</p></div></div>
-
-    <div class="step"><div class="step-n">2</div><div class="step-b"><h4>Run the Database Schema</h4>
-      <p>In your Supabase project, go to <strong style="color:var(--text);">SQL Editor</strong> → New Query. Paste and run this:</p>
-      <div class="code-block">create table athletes (
-  id uuid default gen_random_uuid() primary key,
-  nickname text unique not null,
-  pin text not null,
-  age int not null,
-  age_group text not null,
-  equip text not null,
-  phase text not null,
-  created_at timestamptz default now()
-);
-
-create table workout_logs (
-  id uuid default gen_random_uuid() primary key,
-  athlete_id uuid references athletes(id),
-  nickname text,
-  age_group text,
-  phase text,
-  day text,
-  session text,
-  exercises jsonb,
-  notes text,
-  equipment text,
-  created_at timestamptz default now()
-);
-
-create table ruck_logs (
-  id uuid default gen_random_uuid() primary key,
-  athlete_id uuid references athletes(id),
-  nickname text,
-  age_group text,
-  phase text,
-  ruck_date date,
-  duration int,
-  distance numeric,
-  pack_weight int,
-  elevation int,
-  avg_hr int,
-  rpe int,
-  notes text,
-  created_at timestamptz default now()
-);</div>
-    </div></div>
-
-    <div class="step"><div class="step-n">3</div><div class="step-b"><h4>Get Your API Keys</h4><p>In Supabase go to <strong style="color:var(--text);">Settings → API</strong>. Copy your <strong style="color:var(--text);">Project URL</strong> and your <strong style="color:var(--text);">anon/public key</strong>. You'll need these in Part 2.</p></div></div>
-
-    <div class="step"><div class="step-n">4</div><div class="step-b"><h4>Enable Security Policies</h4><p>In <strong style="color:var(--text);">SQL Editor → New Query</strong>, paste and run:</p>
-      <div class="code-block">ALTER TABLE athletes     ENABLE ROW LEVEL SECURITY;
-ALTER TABLE workout_logs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE ruck_logs    ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "anon_read"   ON athletes FOR SELECT TO anon USING (true);
-CREATE POLICY "anon_insert" ON athletes FOR INSERT TO anon WITH CHECK (true);
-CREATE POLICY "anon_update" ON athletes FOR UPDATE TO anon USING (true);
-
-CREATE POLICY "anon_read"   ON workout_logs FOR SELECT TO anon USING (true);
-CREATE POLICY "anon_insert" ON workout_logs FOR INSERT TO anon WITH CHECK (true);
-
-CREATE POLICY "anon_read"   ON ruck_logs FOR SELECT TO anon USING (true);
-CREATE POLICY "anon_insert" ON ruck_logs FOR INSERT TO anon WITH CHECK (true);</div>
-      <p style="margin-top:6px;">This blocks all deletes and prevents anyone from editing logged sessions.</p>
-    </div></div>
-
-    <div style="font-family:var(--fh);font-size:16px;font-weight:700;color:var(--amber);letter-spacing:.06em;margin:20px 0 12px;">PART 2 — DEPLOY TO GITHUB PAGES</div>
-
-    <div class="step"><div class="step-n">5</div><div class="step-b"><h4>Create a GitHub Repository</h4><p>Go to <code>github.com</code> → New repository → name it <strong style="color:var(--text);">bca-tracker</strong> → Public → Create. Don't add any default files.</p></div></div>
-
-    <div class="step"><div class="step-n">6</div><div class="step-b"><h4>Edit index.html Before Uploading</h4>
-      <p>Open <code>index.html</code> in any text editor (Notepad, TextEdit). Find the 3 lines near the top that say <code>YOUR_SUPABASE_URL</code> and <code>YOUR_SUPABASE_ANON_KEY</code> and replace them with your actual values. Also change <code>COACH_PIN</code> from <code>'1234'</code> to your chosen coach PIN.</p>
-      <p style="margin-top:6px;">It should look like:</p>
-      <div class="code-block">const SUPABASE_URL = 'https://xxxx.supabase.co';
-const SUPABASE_KEY = 'eyJhbGci...';
-const COACH_PIN   = '7391';</div>
-    </div></div>
-
-    <div class="step"><div class="step-n">7</div><div class="step-b"><h4>Upload All 3 Files</h4><p>In your new GitHub repo click <strong style="color:var(--text);">Add file → Upload files</strong>. Drag in your edited <code>index.html</code>, <code>manifest.json</code>, and <code>sw.js</code>. Commit.</p></div></div>
-
-    <div class="step"><div class="step-n">8</div><div class="step-b"><h4>Enable GitHub Pages</h4><p>In your repo go to <strong style="color:var(--text);">Settings → Pages → Source: Deploy from branch → main → / (root)</strong> → Save. Wait 2 minutes. Your app URL will be: <code>yourusername.github.io/bca-tracker</code></p></div></div>
-
-    <div class="step"><div class="step-n">9</div><div class="step-b"><h4>Share the Link</h4><p>Send that URL to every athlete. On iPhone: open in Safari → Share button → <strong style="color:var(--text);">Add to Home Screen</strong>. On Android: Chrome menu → <strong style="color:var(--text);">Add to Home Screen</strong>. It installs as an app icon.</p></div></div>
-
-    <div style="background:var(--pa);border:1px solid #3A6A2A;border-radius:8px;padding:14px;margin-top:8px;">
-      <div style="font-family:var(--fh);font-size:13px;font-weight:700;color:var(--pa-t);letter-spacing:.06em;">✓ YOU'RE LIVE</div>
-      <p style="font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6;">Every athlete creates their profile on first open. All data syncs to your Supabase database. Access the coach dashboard from any athlete's phone via More → Coach Dashboard.</p>
-    </div>
   </div>
 </div>
 
@@ -829,6 +727,26 @@ let profile = null;
 let allCoachLogs = [];
 let allAthletes = [];
 let activeWorkoutDay = null;
+let _prevWorkoutData = null;
+let freeExSets = {};
+let _weekOffset = 0;
+
+function getSessionName(workout){
+  if(!workout||workout.ruck) return null;
+  return(profile.useCustom&&workout.session)?workout.session:workout.day+' Training';
+}
+
+async function fetchPrevWorkout(sessionName){
+  _prevWorkoutData=null;
+  if(!db||!sessionName) return;
+  try{
+    const{data}=await db.from('workout_logs').select('exercises,session,created_at')
+      .eq(profile.id?'athlete_id':'nickname',profile.id||profile.nickname)
+      .eq('session',sessionName)
+      .order('created_at',{ascending:false}).limit(1).single();
+    if(data) _prevWorkoutData={session:sessionName,exercises:data.exercises||[]};
+  }catch{}
+}
 
 function initDB(){
   if(typeof supabase === 'undefined' || SUPABASE_URL === 'YOUR_SUPABASE_URL') return null;
@@ -917,7 +835,7 @@ function nav(id){
   else if(id==='coach-pin') buildCoachPinScreen();
   else if(id==='myprogram') renderMyProgram();
   else if(id==='program-overview') renderProgramOverview();
-  else if(id==='week-view') renderWeekView();
+  else if(id==='week-view'){ _weekOffset=0; renderWeekView(); }
   else if(id==='ruck-year') renderRuckYear();
   else if(id==='phase-info') renderPhaseInfo();
   _currentScreen=id;
@@ -1127,14 +1045,12 @@ function renderWorkout(){
   const ph=pg.phases[p.phase];
   const badge=document.getElementById('w-badge');
   badge.textContent='Phase '+p.phase; badge.className='badge b'+p.phase.toLowerCase();
-  // Clear any stale form state from a previous visit
   document.getElementById('w-form-area').innerHTML='';
-  freeExCount=0;
+  freeExCount=0; freeExSets={};
 
   const tabs=document.getElementById('w-day-tabs');
   tabs.innerHTML='';
   let defaultWorkout=null;
-
   const schedule=getWorkoutSchedule();
   schedule.forEach((w,idx)=>{
     const t=document.createElement('div');
@@ -1144,19 +1060,23 @@ function renderWorkout(){
     t.addEventListener('click',()=>{
       tabs.querySelectorAll('.dtab').forEach(x=>x.classList.remove('active'));
       t.classList.add('active');
-      renderWorkoutForm(w,ph);
+      document.getElementById('w-form-area').innerHTML='';
+      freeExCount=0; freeExSets={};
+      const sn=getSessionName(w);
+      fetchPrevWorkout(sn).then(()=>renderWorkoutForm(w,ph));
     });
     tabs.appendChild(t);
   });
 
-  renderWorkoutForm(defaultWorkout||schedule[0], ph);
+  const sn=getSessionName(defaultWorkout||schedule[0]);
+  fetchPrevWorkout(sn).then(()=>renderWorkoutForm(defaultWorkout||schedule[0],ph));
 }
 
 let freeExCount=0;
 
 function renderWorkoutForm(workout,ph){
   const area=document.getElementById('w-form-area');
-  freeExCount=0;
+  freeExCount=0; freeExSets={};
   if(workout.ruck){
     area.innerHTML=`<div style="padding:32px 16px;text-align:center;">
       <div style="font-size:48px;margin-bottom:14px;">🎒</div>
@@ -1177,36 +1097,74 @@ function renderWorkoutForm(workout,ph){
     </div>
     <div style="padding:4px 16px 10px;">
       <label style="font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;">Session Notes</label>
-      <textarea id="w-notes" rows="2" placeholder="How'd it feel? PR? Form notes..." style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:10px 12px;font-family:var(--fb);font-size:14px;width:100%;outline:none;resize:none;transition:border-color .2s,box-shadow .2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+      <textarea id="w-notes" rows="2" placeholder="How'd it feel? PR? Form notes..." style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:10px 12px;font-family:var(--fb);font-size:14px;width:100%;outline:none;resize:none;transition:border-color .2s,box-shadow .2s;"></textarea>
     </div>
     <div style="padding:4px 16px 16px;">
       <button class="btn btn-primary" id="w-save-btn" onclick="saveWorkout()">SAVE SESSION ✓</button>
     </div>`;
+
+  // Pre-populate exercises from custom program
+  if(profile.useCustom && workout.ex && workout.ex.length){
+    workout.ex.forEach(name=>addFreeExercise(name));
+  }
 }
 
-function addFreeExercise(){
+function addFreeExercise(prefillName=''){
   const list=document.getElementById('w-exercise-list');
   if(!list) return;
   const i=freeExCount++;
-  const sets=parseInt(getProgramTier().phases[profile.phase].sets.split('–')[0])||3;
-  const el=document.createElement('div');
-  el.className='ex-item';
-  el.id='fex-wrap-'+i;
-  let sH=`<div class="set-grid"><div class="set-lbl">Set</div><div class="set-lbl">Reps</div><div class="set-lbl">Weight</div><div class="set-lbl">✓</div></div>`;
-  for(let s=1;s<=sets;s++){
-    sH+=`<div class="set-grid">
+  const defaultSets=parseInt(getProgramTier().phases[profile.phase].sets.split('–')[0])||3;
+  freeExSets[i]=defaultSets;
+
+  // Previous session reference
+  let prevHtml='';
+  if(_prevWorkoutData&&prefillName){
+    const prevEx=(_prevWorkoutData.exercises||[]).find(e=>e.name&&e.name.toLowerCase()===prefillName.toLowerCase());
+    if(prevEx&&prevEx.sets&&prevEx.sets.length){
+      const rows=prevEx.sets.filter(s=>s.reps||s.weight).map(s=>
+        `S${s.set}: ${s.reps||'—'} reps · ${s.weight?s.weight+' lb':'BW'}`
+      ).join(' &nbsp;|&nbsp; ');
+      if(rows) prevHtml=`<div style="font-family:var(--fh);font-size:10px;color:var(--accent);padding:5px 8px;background:rgba(114,192,64,.07);border-radius:5px;border-left:2px solid var(--accent);margin-bottom:8px;letter-spacing:.02em;">LAST: ${rows}</div>`;
+    }
+  }
+
+  let sRows='';
+  for(let s=1;s<=defaultSets;s++){
+    sRows+=`<div class="set-grid">
       <div style="text-align:center;font-family:var(--fh);font-size:13px;color:var(--muted);">${s}</div>
       <input type="number" class="set-in" id="fex${i}s${s}r" placeholder="—" inputmode="numeric">
       <input type="number" class="set-in" id="fex${i}s${s}w" placeholder="—" inputmode="decimal" step="2.5">
       <button class="set-chk" id="fex${i}s${s}c" onclick="toggleChk(this,'fex${i}')"></button>
     </div>`;
   }
+
+  const el=document.createElement('div');
+  el.className='ex-item';
+  el.id='fex-wrap-'+i;
   el.innerHTML=`<div style="padding:10px 14px 8px;display:flex;align-items:center;gap:8px;">
-    <input type="text" id="fex-name-${i}" placeholder="Exercise name" autocomplete="off" autocapitalize="words" style="flex:1;min-width:0;font-family:var(--fh);font-size:14px;font-weight:600;">
+    <input type="text" id="fex-name-${i}" placeholder="Exercise name" autocomplete="off" autocapitalize="words" value="${_esc(prefillName)}" style="flex:1;min-width:0;font-family:var(--fh);font-size:14px;font-weight:600;background:transparent;border:none;color:var(--text);outline:none;">
     <button onclick="document.getElementById('fex-wrap-${i}').remove()" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);width:34px;height:44px;font-size:18px;cursor:pointer;flex-shrink:0;line-height:1;">×</button>
   </div>
-  <div class="ex-body open" style="padding:0 14px 12px;">${sH}</div>`;
+  <div class="ex-body open" style="padding:0 14px 12px;">
+    ${prevHtml}
+    <div class="set-grid"><div class="set-lbl">Set</div><div class="set-lbl">Reps</div><div class="set-lbl">Weight</div><div class="set-lbl">✓</div></div>
+    <div id="fex${i}-sets">${sRows}</div>
+    <button onclick="addFreeSet(${i})" style="background:none;border:1px dashed var(--border);color:var(--muted);font-family:var(--fh);font-size:10px;font-weight:700;letter-spacing:.06em;padding:7px;border-radius:6px;cursor:pointer;width:100%;margin-top:6px;">+ ADD SET</button>
+  </div>`;
   list.appendChild(el);
+}
+
+function addFreeSet(i){
+  freeExSets[i]=(freeExSets[i]||0)+1;
+  const s=freeExSets[i];
+  const container=document.getElementById(`fex${i}-sets`);
+  if(!container) return;
+  container.insertAdjacentHTML('beforeend',`<div class="set-grid">
+    <div style="text-align:center;font-family:var(--fh);font-size:13px;color:var(--muted);">${s}</div>
+    <input type="number" class="set-in" id="fex${i}s${s}r" placeholder="—" inputmode="numeric">
+    <input type="number" class="set-in" id="fex${i}s${s}w" placeholder="—" inputmode="decimal" step="2.5">
+    <button class="set-chk" id="fex${i}s${s}c" onclick="toggleChk(this,'fex${i}')"></button>
+  </div>`);
 }
 
 function toggleChk(btn,prefix){
@@ -1222,7 +1180,7 @@ async function saveWorkout(){
   const workout=schedule.find(w=>w.day===dayLabel)||schedule[0];
   if(!workout||workout.ruck){toast('Switch to a training day to log',true);return;}
 
-  const activity=workout.day+' Training';
+  const activity=(profile.useCustom&&workout.session)?workout.session:workout.day+' Training';
   const notes=(document.getElementById('w-notes')?.value||'').trim();
 
   // Collect any manually added exercises
@@ -1274,22 +1232,22 @@ async function saveWorkout(){
 
   btn.textContent='SAVE SESSION ✓'; btn.disabled=false;
   document.getElementById('w-exercise-list').innerHTML='';
-  freeExCount=0;
+  freeExCount=0; freeExSets={};
   const wn=document.getElementById('w-notes');if(wn)wn.value='';
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // RUCK
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function renderRuck(){
-  // Reset all fields and refresh date each time screen opens
+function clearRuckForm(){
   document.getElementById('r-date').value=today();
-  ['r-dur','r-dist','r-wt','r-elev','r-hr','r-notes'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el) el.value='';
-  });
+  ['r-dur','r-dist','r-wt','r-elev','r-hr','r-notes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('r-rpe').value=7;
   document.getElementById('r-rpe-val').textContent='7';
+}
+
+function renderRuck(){
+  clearRuckForm();
 }
 
 async function saveRuck(){
@@ -1320,10 +1278,7 @@ async function saveRuck(){
     toast('Ruck saved locally ✓');
   }
 
-  ['r-dur','r-dist','r-wt','r-elev','r-hr','r-notes'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('r-rpe').value=7;
-  document.getElementById('r-rpe-val').textContent='7';
-  document.getElementById('r-date').value=today();
+  clearRuckForm();
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1440,14 +1395,15 @@ async function renderProgress(){
   }
 
   _progressLogs={};
-  list.innerHTML=combined.map((l,idx)=>{
+  list.innerHTML=combined.map((l)=>{
     const d=new Date(l.created_at);
     const ds=d.toLocaleDateString('en-US',{month:'short',day:'numeric',weekday:'short'});
-    const uid='prog-item-'+idx;
+    const uid='prog-item-'+(l.id||l.created_at);
     const isOpen=_expandedItems.has(uid);
     _progressLogs[uid]=l;
 
     const editBtn=`<button onclick="event.stopPropagation();openEditLog('${uid}')" title="Edit" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);padding:3px 8px;font-size:12px;cursor:pointer;line-height:1.5;font-family:var(--fh);font-weight:700;letter-spacing:.04em;flex-shrink:0;">✏ EDIT</button>`;
+    const deleteBtn=`<button onclick="event.stopPropagation();deleteLog('${uid}')" title="Delete" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:6px;color:var(--danger);padding:3px 8px;font-size:12px;cursor:pointer;line-height:1.5;font-family:var(--fh);font-weight:700;letter-spacing:.04em;flex-shrink:0;">🗑</button>`;
 
     if(l._type==='ruck'){
       const detail=`<div id="${uid}-detail" style="display:${isOpen?'block':'none'};border-top:1px solid var(--border);margin-top:10px;padding-top:10px;">
@@ -1458,12 +1414,12 @@ async function renderProgress(){
           <div style="background:var(--surface);border-radius:7px;padding:10px;text-align:center;"><div style="font-family:var(--fh);font-size:18px;font-weight:800;color:var(--amber);">${l.elevation||'—'}</div><div style="font-family:var(--fh);font-size:9px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:2px;">Ft Gain</div></div>
         </div>
         ${l.avg_hr?`<div style="font-family:var(--fh);font-size:12px;color:var(--muted);margin-bottom:6px;">Avg HR: ${l.avg_hr} bpm &nbsp;·&nbsp; RPE ${l.rpe||'?'}/10</div>`:''}
-        ${l.notes?`<div style="font-size:12px;color:var(--text);padding:8px 10px;background:var(--surface);border-radius:7px;line-height:1.5;">${l.notes}</div>`:''}
+        ${l.notes?`<div style="font-size:12px;color:var(--text);padding:8px 10px;background:var(--surface);border-radius:7px;line-height:1.5;">${_esc(l.notes||'')}</div>`:''}
       </div>`;
       return`<div class="hist-item" onclick="toggleProgressItem('${uid}')" style="cursor:pointer;">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
           <div style="display:flex;align-items:center;gap:8px;"><span class="pill pill-gold">🎒 RUCK</span><span style="font-family:var(--fh);font-size:11px;color:var(--muted);">${ds}</span></div>
-          <div style="display:flex;align-items:center;gap:8px;">${editBtn}<span id="${uid}-arrow" style="color:var(--muted);font-size:14px;transition:transform .2s;transform:${isOpen?'rotate(180deg)':'rotate(0deg)'};">▼</span></div>
+          <div style="display:flex;align-items:center;gap:8px;">${editBtn}${deleteBtn}<button onclick="event.stopPropagation();toggleProgressItem('${uid}')" style="background:none;border:none;padding:2px 4px;cursor:pointer;color:var(--muted);font-size:14px;transition:transform .2s;transform:${isOpen?'rotate(180deg)':'rotate(0deg)'};" id="${uid}-arrow">▼</button></div>
         </div>
         <div class="hist-session">${l.duration||'?'} min · ${l.pack_weight||'?'} lb · ${l.elevation||'?'} ft gain</div>
         <div class="hist-meta">RPE ${l.rpe||'?'} · ${l.distance||'?'} mi</div>
@@ -1474,7 +1430,7 @@ async function renderProgress(){
     // Workout
     const exArr=Array.isArray(l.exercises)?l.exercises.filter(e=>e.name):[];
     const exDetail=exArr.length?exArr.map(e=>{
-      const setsHtml=(e.sets||[]).filter(s=>s.reps||s.weight).map(s=>
+      const setsHtml=(e.sets||[]).filter(s=>s.reps||s.weight||s.done).map(s=>
         `<div style="display:flex;gap:12px;font-size:11px;color:var(--muted);padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);">
           <span style="width:36px;font-family:var(--fh);color:var(--muted);">Set ${s.set}</span>
           <span>${s.reps||'—'} reps</span>
@@ -1486,7 +1442,7 @@ async function renderProgress(){
     }).join(''):'<div style="font-size:12px;color:var(--muted);">No exercises recorded</div>';
 
     const detail=`<div id="${uid}-detail" style="display:${isOpen?'block':'none'};border-top:1px solid var(--border);margin-top:10px;padding-top:10px;">
-      ${l.notes?`<div style="font-size:12px;color:var(--text);padding:8px 10px;background:var(--surface);border-radius:7px;line-height:1.5;margin-bottom:10px;">${l.notes}</div>`:''}
+      ${l.notes?`<div style="font-size:12px;color:var(--text);padding:8px 10px;background:var(--surface);border-radius:7px;line-height:1.5;margin-bottom:10px;">${_esc(l.notes||'')}</div>`:''}
       ${exDetail}
     </div>`;
 
@@ -1494,7 +1450,7 @@ async function renderProgress(){
     return`<div class="hist-item" onclick="toggleProgressItem('${uid}')" style="cursor:pointer;">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
         <div style="display:flex;align-items:center;gap:8px;"><span class="pill pill-green">💪 WORKOUT</span><span style="font-family:var(--fh);font-size:11px;color:var(--muted);">${ds}</span></div>
-        <div style="display:flex;align-items:center;gap:8px;">${editBtn}<span id="${uid}-arrow" style="color:var(--muted);font-size:14px;transition:transform .2s;transform:${isOpen?'rotate(180deg)':'rotate(0deg)'};">▼</span></div>
+        <div style="display:flex;align-items:center;gap:8px;">${editBtn}${deleteBtn}<button onclick="event.stopPropagation();toggleProgressItem('${uid}')" style="background:none;border:none;padding:2px 4px;cursor:pointer;color:var(--muted);font-size:14px;transition:transform .2s;transform:${isOpen?'rotate(180deg)':'rotate(0deg)'};" id="${uid}-arrow">▼</button></div>
       </div>
       <div class="hist-session">${l.session||l.day}</div>
       <div class="hist-meta">${exCount} exercise${exCount!==1?'s':''} · ${l.phase||''}</div>
@@ -1513,6 +1469,22 @@ function toggleProgressItem(uid){
   if(open) _expandedItems.delete(uid); else _expandedItems.add(uid);
 }
 
+async function deleteLog(uid){
+  const l=_progressLogs[uid];
+  if(!l||!l.id){toast('Cannot delete — no record ID',true);return;}
+  if(!confirm('Delete this session? This cannot be undone.')) return;
+  if(!db){toast('No database connection',true);return;}
+  try{
+    const table=l._type==='ruck'?'ruck_logs':'workout_logs';
+    const{error}=await db.from(table).delete().eq('id',l.id);
+    if(error) throw error;
+    toast('Session deleted');
+    renderProgress();
+  }catch(e){
+    toast('Delete failed — add DELETE policy in Supabase RLS',true);
+  }
+}
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // WEEK VIEW
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1523,7 +1495,7 @@ async function renderWeekView(){
   // Week: Monday → Sunday
   const now=new Date();
   const dow=now.getDay(); // 0=Sun
-  const monday=new Date(now); monday.setDate(now.getDate()-(dow===0?6:dow-1)); monday.setHours(0,0,0,0);
+  const monday=new Date(now); monday.setDate(now.getDate()-(dow===0?6:dow-1)+(_weekOffset*7)); monday.setHours(0,0,0,0);
   const sunday=new Date(monday); sunday.setDate(monday.getDate()+6); sunday.setHours(23,59,59,999);
 
   let logs=[];
@@ -1565,7 +1537,7 @@ async function renderWeekView(){
       const border=isToday?'border-left:3px solid var(--accent);':'border-left:3px solid var(--border);';
       const header=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:${dayLogs.length?'8':'0'}px;">
         <div style="font-family:var(--fh);font-size:14px;font-weight:800;color:${isToday?'var(--accent)':'var(--text)'};">${dayNames[di]}</div>
-        ${isToday?'<span class="pill pill-green" style="font-size:9px;">TODAY</span>':''}
+        ${(isToday&&_weekOffset===0)?'<span class="pill pill-green" style="font-size:9px;">TODAY</span>':''}
         ${dayLogs.length===0?`<span style="font-family:var(--fh);font-size:11px;color:var(--muted);">Rest / Unlogged</span>`:''}
       </div>`;
       const rows=dayLogs.map(l=>{
@@ -1900,6 +1872,29 @@ async function loadCoachData(){
   }
 }
 
+function coachStatClick(type){
+  if(type==='athletes'){
+    document.getElementById('c-athletes-list').scrollIntoView({behavior:'smooth',block:'start'});
+    return;
+  }
+  const weekAgo=new Date(); weekAgo.setDate(weekAgo.getDate()-7);
+  let filtered=allCoachLogs.filter(l=>new Date(l.created_at)>=weekAgo);
+  document.querySelectorAll('#c-filter-row .ftab-type').forEach(t=>t.classList.remove('active'));
+  if(type==='sessions'){
+    filtered=filtered.filter(l=>l._type==='workout');
+    activeCoachFilter.type='workout';
+    document.querySelectorAll('#c-filter-row .ftab-type')[1]?.classList.add('active');
+  } else if(type==='rucks'){
+    filtered=filtered.filter(l=>l._type==='ruck');
+    activeCoachFilter.type='ruck';
+    document.querySelectorAll('#c-filter-row .ftab-type')[2]?.classList.add('active');
+  }
+  activeCoachFilter.group=null;
+  document.querySelectorAll('#c-filter-row .ftab-group').forEach(t=>t.classList.remove('active'));
+  renderLogsList(filtered);
+  setTimeout(()=>document.getElementById('c-logs-list').scrollIntoView({behavior:'smooth',block:'start'}),80);
+}
+
 function renderAthletesList(athletes){
   const el=document.getElementById('c-athletes-list');
   if(!athletes.length){el.innerHTML='<div class="empty"><p>No athletes yet.</p></div>';return;}
@@ -1961,27 +1956,29 @@ function _applyCoachFilters(){
 }
 
 function filterLogs(type,el){
-  document.querySelectorAll('#c-filter-row .ftab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#c-filter-row .ftab-type').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
   activeCoachFilter.type=type;
   _applyCoachFilters();
 }
 
 function filterCoachGroup(group,el){
-  document.querySelectorAll('#c-filter-row .ftab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
+  document.querySelectorAll('#c-filter-row .ftab-group').forEach(t=>t.classList.remove('active'));
   // Toggle off if same group tapped again
   activeCoachFilter.group=(activeCoachFilter.group===group)?null:group;
+  if(activeCoachFilter.group) el.classList.add('active');
   _applyCoachFilters();
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // SYNC QUEUE
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let _syncInProgress=false;
 async function retrySyncQueue(){
-  if(!db) return;
+  if(!db||_syncInProgress) return;
   const queue=getQueue();
   if(!queue.length) return;
+  _syncInProgress=true;
   const failed=[];
   for(const item of queue){
     try{
@@ -2013,6 +2010,7 @@ async function retrySyncQueue(){
     }catch{ failed.push(item); }
   }
   lsSet('bca_queue',failed);
+  _syncInProgress=false;
   if(failed.length<queue.length) toast(`Synced ${queue.length-failed.length} item(s) ✓`);
 }
 
@@ -2057,7 +2055,6 @@ function renderCustomDays(){
     container.innerHTML='<div class="empty" style="padding:28px 24px;"><div class="empty-icon">📋</div><p>No days yet.<br>Tap below to start building.</p></div>';
     return;
   }
-  const esc=s=>s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
   container.innerHTML=customDays.map((d,i)=>`
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -2072,12 +2069,12 @@ function renderCustomDays(){
       </div>
       <div class="field">
         <label>Session Name</label>
-        <input type="text" value="${esc(d.session||'')}" placeholder="e.g. Push Day, Legs, Full Body" oninput="customDays[${i}].session=this.value" maxlength="40">
+        <input type="text" value="${_esc(d.session||'')}" placeholder="e.g. Push Day, Legs, Full Body" oninput="customDays[${i}].session=this.value" maxlength="40">
       </div>
       <label style="font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px;">Exercises</label>
       ${d.ex.map((ex,j)=>`
         <div style="display:flex;gap:8px;margin-bottom:6px;">
-          <input type="text" value="${esc(ex)}" placeholder="Exercise name" oninput="customDays[${i}].ex[${j}]=this.value" style="flex:1;min-width:0;" maxlength="50">
+          <input type="text" value="${_esc(ex)}" placeholder="Exercise name" oninput="customDays[${i}].ex[${j}]=this.value" style="flex:1;min-width:0;" maxlength="50">
           <button onclick="removeExFromDay(${i},${j})" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);width:38px;height:44px;font-size:18px;cursor:pointer;flex-shrink:0;line-height:1;">×</button>
         </div>
       `).join('')}
@@ -2137,6 +2134,8 @@ async function saveCustomProgram(){
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 let _editLogUID = null;
 let _editNewExCount = 0;
+let _editExSets = {};
+let _editNewExSets = {};
 
 function _esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
 
@@ -2150,8 +2149,11 @@ function openEditLog(uid){
   if(l._type==='workout'){
     title.textContent='EDIT WORKOUT';
     _editNewExCount=0;
+    _editExSets={};
+    _editNewExSets={};
     const exArr=Array.isArray(l.exercises)?l.exercises.filter(e=>e.name):[];
     const exHtml=exArr.length?exArr.map((ex,i)=>{
+      _editExSets[i]=ex.sets?ex.sets.length:0;
       const setsHtml=(ex.sets||[]).map((s,si)=>`
         <div style="display:grid;grid-template-columns:28px 1fr 1fr;gap:6px;margin-bottom:5px;align-items:center;">
           <div style="text-align:center;font-family:var(--fh);font-size:11px;color:var(--muted);">${s.set||si+1}</div>
@@ -2165,7 +2167,8 @@ function openEditLog(uid){
           <div style="font-family:var(--fh);font-size:9px;color:var(--muted);text-align:center;text-transform:uppercase;">Wt (lb)</div>
         </div>
         <input type="text" id="eedit-name-${i}" value="${_esc(ex.name)}" style="font-family:var(--fh);font-size:14px;font-weight:700;margin-bottom:8px;background:var(--card);border:1px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--text);width:100%;outline:none;" placeholder="Exercise name">
-        ${setsHtml}
+        <div id="eedit-${i}-sets">${setsHtml}</div>
+        <button onclick="addSetToEditEx(${i})" style="background:none;border:1px dashed var(--border);color:var(--muted);font-family:var(--fh);font-size:10px;font-weight:700;letter-spacing:.06em;padding:7px;border-radius:6px;cursor:pointer;width:100%;margin-top:4px;">+ ADD SET</button>
       </div>`;
     }).join(''):'<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">No exercises recorded</div>';
 
@@ -2204,6 +2207,8 @@ function closeEditModal(){
   document.getElementById('edit-modal').style.display='none';
   _editLogUID=null;
   _editNewExCount=0;
+  _editExSets={};
+  _editNewExSets={};
 }
 
 function addEditExercise(){
@@ -2211,11 +2216,8 @@ function addEditExercise(){
   if(!list) return;
   const i=_editNewExCount++;
   const sets=parseInt(getProgramTier().phases[profile.phase].sets.split('–')[0])||3;
-  let sH=`<div style="display:grid;grid-template-columns:28px 1fr 1fr;gap:6px;margin-bottom:4px;">
-    <div></div>
-    <div style="font-family:var(--fh);font-size:9px;color:var(--muted);text-align:center;text-transform:uppercase;">Reps</div>
-    <div style="font-family:var(--fh);font-size:9px;color:var(--muted);text-align:center;text-transform:uppercase;">Wt (lb)</div>
-  </div>`;
+  _editNewExSets[i]=sets;
+  let sH='';
   for(let s=1;s<=sets;s++){
     sH+=`<div style="display:grid;grid-template-columns:28px 1fr 1fr;gap:6px;margin-bottom:5px;align-items:center;">
       <div style="text-align:center;font-family:var(--fh);font-size:11px;color:var(--muted);">${s}</div>
@@ -2226,11 +2228,42 @@ function addEditExercise(){
   const el=document.createElement('div');
   el.id='enew-wrap-'+i;
   el.style.cssText='background:var(--surface);border-radius:9px;padding:10px 12px;margin-bottom:8px;';
-  el.innerHTML=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+  el.innerHTML=`<div style="display:grid;grid-template-columns:28px 1fr 1fr;gap:6px;margin-bottom:4px;">
+    <div></div>
+    <div style="font-family:var(--fh);font-size:9px;color:var(--muted);text-align:center;text-transform:uppercase;">Reps</div>
+    <div style="font-family:var(--fh);font-size:9px;color:var(--muted);text-align:center;text-transform:uppercase;">Wt (lb)</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
     <input type="text" id="enew-name-${i}" placeholder="Exercise name" autocomplete="off" autocapitalize="words" style="flex:1;font-family:var(--fh);font-size:14px;font-weight:700;background:var(--card);border:1px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--text);outline:none;">
     <button onclick="document.getElementById('enew-wrap-${i}').remove()" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);width:34px;height:36px;font-size:18px;cursor:pointer;flex-shrink:0;line-height:1;">×</button>
-  </div>${sH}`;
+  </div>
+  <div id="enew-${i}-sets">${sH}</div>
+  <button onclick="addSetToNewEditEx(${i})" style="background:none;border:1px dashed var(--border);color:var(--muted);font-family:var(--fh);font-size:10px;font-weight:700;letter-spacing:.06em;padding:7px;border-radius:6px;cursor:pointer;width:100%;margin-top:4px;">+ ADD SET</button>`;
   list.appendChild(el);
+}
+
+function addSetToEditEx(i){
+  const si=_editExSets[i]||0;
+  _editExSets[i]=si+1;
+  const container=document.getElementById(`eedit-${i}-sets`);
+  if(!container) return;
+  container.insertAdjacentHTML('beforeend',`<div style="display:grid;grid-template-columns:28px 1fr 1fr;gap:6px;margin-bottom:5px;align-items:center;">
+    <div style="text-align:center;font-family:var(--fh);font-size:11px;color:var(--muted);">${si+1}</div>
+    <input type="number" class="set-in" id="eedit-${i}s${si}r" value="" placeholder="Reps" inputmode="numeric" style="padding:8px 4px;">
+    <input type="number" class="set-in" id="eedit-${i}s${si}w" value="" placeholder="Wt lb" inputmode="decimal" step="2.5" style="padding:8px 4px;">
+  </div>`);
+}
+
+function addSetToNewEditEx(i){
+  const s=(_editNewExSets[i]||0)+1;
+  _editNewExSets[i]=s;
+  const container=document.getElementById(`enew-${i}-sets`);
+  if(!container) return;
+  container.insertAdjacentHTML('beforeend',`<div style="display:grid;grid-template-columns:28px 1fr 1fr;gap:6px;margin-bottom:5px;align-items:center;">
+    <div style="text-align:center;font-family:var(--fh);font-size:11px;color:var(--muted);">${s}</div>
+    <input type="number" class="set-in" id="enew${i}s${s}r" placeholder="—" inputmode="numeric" style="padding:8px 4px;">
+    <input type="number" class="set-in" id="enew${i}s${s}w" placeholder="—" inputmode="decimal" step="2.5" style="padding:8px 4px;">
+  </div>`);
 }
 
 async function saveEditLog(){
@@ -2255,6 +2288,14 @@ async function saveEditLog(){
           reps:document.getElementById(`eedit-${i}s${si}r`)?.value||s.reps,
           weight:document.getElementById(`eedit-${i}s${si}w`)?.value||s.weight
         }));
+        // Collect any sets added via "+ ADD SET"
+        let addSi=ex.sets?ex.sets.length:0;
+        while(document.getElementById(`eedit-${i}s${addSi}r`)){
+          const r=document.getElementById(`eedit-${i}s${addSi}r`).value;
+          const w=document.getElementById(`eedit-${i}s${addSi}w`).value;
+          if(r||w) sets.push({set:addSi+1,reps:r,weight:w,done:false});
+          addSi++;
+        }
         return{name,sets};
       });
       // Collect any newly added exercises
