@@ -2115,7 +2115,7 @@ async function saveCustomProgram(){
   if(customDays.some(d=>!d.session)){toast('Give each day a session name',true);return;}
   if(customDays.some(d=>!d.ex.length)){toast('Each day needs at least one exercise',true);return;}
   profile.customProgram=customDays.length?{days:customDays}:null;
-  if(!customDays.length) profile.useCustom=false;
+  profile.useCustom=customDays.length>0;
   lsSet('bca_profile',profile);
   if(db&&profile.id){
     try{
