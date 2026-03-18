@@ -1,4 +1,4 @@
-const CACHE = 'bca-v1';
+const CACHE = 'bca-v3';
 const ASSETS = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', e => {
