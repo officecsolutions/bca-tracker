@@ -376,11 +376,13 @@ code{background:var(--surface);border:1px solid var(--border);border-radius:4px;
 
 <!-- ══════════════════════════════════ WORKOUT ══ -->
 <div id="screen-workout" class="screen">
-  <div class="topbar">
-    <h2>Workout</h2>
-    <span id="w-badge" class="badge ba"></span>
+  <div style="position:sticky;top:0;z-index:50;background:rgba(11,26,11,.97);backdrop-filter:blur(14px);border-bottom:1px solid rgba(36,54,36,.9);box-shadow:0 2px 12px rgba(0,0,0,.4);">
+    <div class="topbar" style="position:static;border-bottom:none;box-shadow:none;backdrop-filter:none;">
+      <h2>Workout</h2>
+      <span id="w-badge" class="badge ba"></span>
+    </div>
+    <div class="day-tabs" id="w-day-tabs"></div>
   </div>
-  <div class="day-tabs" id="w-day-tabs"></div>
   <div id="w-form-area"></div>
 </div>
 
