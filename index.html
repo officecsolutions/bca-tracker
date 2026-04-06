@@ -41,7 +41,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--fb);}
-.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;display:none;flex-direction:column;background:var(--bg);padding-bottom:calc(var(--nh) + var(--sbi) + 16px);}
+.screen{position:absolute;inset:0;overflow-y:scroll;-webkit-overflow-scrolling:touch;overflow-x:hidden;display:none;flex-direction:column;background:var(--bg);padding-bottom:calc(var(--nh) + var(--sbi) + 16px);}
 .screen.active{display:flex;}
 .screen-full{padding-bottom:0!important;}
 ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
@@ -192,7 +192,7 @@ code{background:var(--surface);border:1px solid var(--border);border-radius:4px;
 .loading{text-align:center;padding:32px;color:var(--muted);font-family:var(--fh);font-size:14px;letter-spacing:.08em;}
 
 /* FILTER ROW */
-.filter-row{display:flex;gap:6px;padding:8px 16px;overflow-x:auto;scrollbar-width:none;}
+.filter-row{display:flex;gap:6px;padding:8px 16px;overflow-x:auto;scrollbar-width:none;touch-action:pan-x;}
 .filter-row::-webkit-scrollbar{display:none;}
 .ftab{flex-shrink:0;padding:5px 12px;border-radius:16px;font-family:var(--fh);font-size:11px;font-weight:600;letter-spacing:.05em;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);transition:all .15s;-webkit-appearance:none;appearance:none;}
 .ftab.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:var(--accent);box-shadow:0 2px 8px rgba(114,192,64,.25);}
@@ -645,6 +645,19 @@ code{background:var(--surface);border:1px solid var(--border);border-radius:4px;
         <button class="btn btn-primary" onclick="saveEditLog()" style="flex:1;" id="edit-save-btn">SAVE CHANGES ✓</button>
         <button class="btn btn-ghost" onclick="closeEditModal()" style="flex:1;">CANCEL</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ ATHLETE DETAIL MODAL ══ -->
+<div id="athlete-detail-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);overflow-y:auto;-webkit-overflow-scrolling:touch;">
+  <div style="max-width:480px;margin:0 auto;padding:16px 16px 80px;">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-top:36px;box-shadow:0 8px 40px rgba(0,0,0,.7);">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);">
+        <div style="font-family:var(--fh);font-size:16px;font-weight:800;letter-spacing:.05em;color:var(--accent);" id="athlete-detail-title">ATHLETE</div>
+        <button onclick="closeAthleteDetail()" style="background:none;border:none;color:var(--muted);font-size:28px;cursor:pointer;padding:0 4px;line-height:1;">×</button>
+      </div>
+      <div id="athlete-detail-body" style="padding:14px 16px;-webkit-overflow-scrolling:touch;"></div>
     </div>
   </div>
 </div>
@@ -1901,17 +1914,18 @@ function renderAthletesList(athletes){
   const el=document.getElementById('c-athletes-list');
   if(!athletes.length){el.innerHTML='<div class="empty"><p>No athletes yet.</p></div>';return;}
   el.innerHTML=athletes.map(a=>{
+    const idx=allAthletes.indexOf(a);
     const initials=a.nickname.slice(0,2).toUpperCase();
     const phaseColors={A:'var(--pa-t)',B:'var(--pb-t)',C:'var(--pc-t)'};
     const lastLog=allCoachLogs.find(l=>l.nickname===a.nickname);
     const lastDate=lastLog?new Date(lastLog.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'Never';
-    return`<div class="athlete-row">
+    return`<div class="athlete-row" onclick="openAthleteDetail(${idx})" style="cursor:pointer;">
       <div class="athlete-avatar" style="color:${phaseColors[a.phase]||'var(--pa-t)'};">${initials}</div>
       <div class="athlete-info">
         <div class="athlete-name">${a.nickname}</div>
         <div class="athlete-meta">${PROGRAM[a.age_group]?.label||a.age_group||'—'} · Phase ${a.phase} · Last: ${lastDate}</div>
       </div>
-      <span class="badge b${(a.phase||'a').toLowerCase()}" style="font-size:10px;">Ph ${a.phase}</span>
+      <span style="color:var(--muted);font-size:18px;flex-shrink:0;">›</span>
     </div>`;
   }).join('');
 }
@@ -1970,6 +1984,107 @@ function filterCoachGroup(group,el){
   activeCoachFilter.group=(activeCoachFilter.group===group)?null:group;
   if(activeCoachFilter.group) el.classList.add('active');
   _applyCoachFilters();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ATHLETE DETAIL MODAL
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function openAthleteDetail(idx){
+  const athlete=allAthletes[idx];
+  if(!athlete) return;
+  const logs=allCoachLogs.filter(l=>l.nickname===athlete.nickname);
+  const workouts=logs.filter(l=>l._type==='workout');
+  const rucks=logs.filter(l=>l._type==='ruck');
+  const phaseColors={A:'var(--pa-t)',B:'var(--pb-t)',C:'var(--pc-t)'};
+  const tierLabel=PROGRAM[athlete.age_group]?.label||athlete.age_group||'—';
+  const lastLog=logs[0];
+  const lastDate=lastLog?new Date(lastLog.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'Never';
+  const initials=athlete.nickname.slice(0,2).toUpperCase();
+  const phColor=phaseColors[athlete.phase]||'var(--pa-t)';
+  const safeId='adp-'+idx;
+
+  document.getElementById('athlete-detail-title').textContent=athlete.nickname.toUpperCase();
+  document.getElementById('athlete-detail-body').innerHTML=`
+    <div style="background:var(--surface);border-radius:10px;padding:14px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+        <div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#224A1C,#162E12);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:18px;font-weight:700;color:${phColor};flex-shrink:0;">${initials}</div>
+        <div style="flex:1;">
+          <div style="font-family:var(--fh);font-size:20px;font-weight:800;">${athlete.nickname}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;">${tierLabel} · Age ${athlete.age}</div>
+        </div>
+        <span class="badge b${(athlete.phase||'a').toLowerCase()}">Ph ${athlete.phase}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;">
+        <div style="background:var(--card);border-radius:8px;padding:10px;">
+          <div style="font-family:var(--fh);font-size:24px;font-weight:800;color:var(--accent);">${workouts.length}</div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Workouts</div>
+        </div>
+        <div style="background:var(--card);border-radius:8px;padding:10px;">
+          <div style="font-family:var(--fh);font-size:24px;font-weight:800;color:var(--amber);">${rucks.length}</div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Rucks</div>
+        </div>
+        <div style="background:var(--card);border-radius:8px;padding:10px;">
+          <div style="font-family:var(--fh);font-size:13px;font-weight:700;color:var(--text);padding-top:5px;">${lastDate}</div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Last Active</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--surface);border-radius:10px;padding:14px;margin-bottom:12px;">
+      <div style="font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:10px;">Account PIN</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <div style="font-family:var(--fh);font-size:38px;font-weight:800;color:var(--amber);letter-spacing:.25em;">${athlete.pin||'????'}</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5;">Current PIN<br><span style="color:var(--danger);font-size:11px;">Do not share</span></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="number" id="${safeId}" placeholder="New 4-digit PIN" inputmode="numeric" maxlength="4" style="flex:1;padding:10px 12px;font-size:16px;letter-spacing:.2em;" oninput="if(this.value.length>4)this.value=this.value.slice(0,4);">
+        <button onclick="resetAthletePin(${idx},'${safeId}')" class="btn btn-gold btn-sm" style="white-space:nowrap;padding:10px 16px;">RESET PIN</button>
+      </div>
+    </div>
+
+    <div style="font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Recent Activity (${logs.length} total)</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      ${logs.length?logs.slice(0,20).map(l=>{
+        const d=new Date(l.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        const detail=l._type==='ruck'
+          ?`${l.duration||'?'}min · ${l.pack_weight||'?'}lb · ${l.elevation||'?'}ft gain`
+          :`${l.session||l.day||''} · Phase ${l.phase||''}`;
+        return`<div class="log-row">
+          <div class="log-dot" style="background:${l._type==='ruck'?'var(--amber)':'var(--accent)'};margin-top:5px;flex-shrink:0;"></div>
+          <div class="log-body">
+            <div class="log-name" style="font-size:13px;">${l._type==='ruck'?'🎒 Ruck':'💪 Workout'} <span style="color:var(--muted);font-weight:400;font-size:11px;">· ${d}</span></div>
+            <div class="log-detail">${detail}</div>
+          </div>
+        </div>`;
+      }).join(''):`<div style="text-align:center;padding:28px;color:var(--muted);font-size:13px;">No activity yet</div>`}
+      ${logs.length>20?`<div style="text-align:center;padding:10px;font-family:var(--fh);font-size:11px;color:var(--muted);">Showing 20 of ${logs.length} entries</div>`:''}
+    </div>
+  `;
+  document.getElementById('athlete-detail-modal').style.display='block';
+}
+
+function closeAthleteDetail(){
+  document.getElementById('athlete-detail-modal').style.display='none';
+}
+
+async function resetAthletePin(idx,inputId){
+  const athlete=allAthletes[idx];
+  if(!athlete) return;
+  const input=document.getElementById(inputId);
+  const newPin=(input?.value||'').trim();
+  if(!/^\d{4}$/.test(newPin)){toast('Enter a valid 4-digit PIN',true);return;}
+  if(!db){toast('Database not configured',true);return;}
+  try{
+    const{error}=await db.from('athletes').update({pin:newPin}).eq('nickname',athlete.nickname);
+    if(error) throw error;
+    athlete.pin=newPin;
+    input.value='';
+    toast('PIN reset to '+newPin);
+    openAthleteDetail(idx); // refresh modal
+  }catch(e){
+    toast('Error resetting PIN',true);
+    console.error(e);
+  }
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
