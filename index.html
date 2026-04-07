@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BCA">
@@ -41,7 +41,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--fb);}
-.screen{position:fixed;inset:0;overflow-y:scroll;-webkit-overflow-scrolling:touch;overflow-x:hidden;display:none;flex-direction:column;background:var(--bg);padding-bottom:calc(var(--nh) + var(--sbi) + 16px);}
+.screen{position:fixed;top:0;right:0;bottom:0;left:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overflow-x:hidden;display:none;flex-direction:column;background:var(--bg);padding-bottom:calc(var(--nh) + var(--sbi) + 16px);}
 .screen.active{display:flex;}
 .screen-full{padding-bottom:0!important;}
 ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
@@ -633,7 +633,7 @@ code{background:var(--surface);border:1px solid var(--border);border-radius:4px;
 </div>
 
 <!-- ══════════════════════════════════ EDIT LOG MODAL ══ -->
-<div id="edit-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);overflow-y:auto;">
+<div id="edit-modal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:500;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);overflow-y:auto;-webkit-overflow-scrolling:touch;">
   <div style="max-width:480px;margin:0 auto;padding:16px 16px 60px;">
     <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-top:36px;box-shadow:0 8px 40px rgba(0,0,0,.7);">
       <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);">
@@ -650,7 +650,7 @@ code{background:var(--surface);border:1px solid var(--border);border-radius:4px;
 </div>
 
 <!-- ══════════════════════════════════ ATHLETE DETAIL MODAL ══ -->
-<div id="athlete-detail-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);overflow-y:auto;-webkit-overflow-scrolling:touch;">
+<div id="athlete-detail-modal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:500;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);overflow-y:auto;-webkit-overflow-scrolling:touch;">
   <div style="max-width:480px;margin:0 auto;padding:16px 16px 80px;">
     <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-top:36px;box-shadow:0 8px 40px rgba(0,0,0,.7);">
       <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);">
