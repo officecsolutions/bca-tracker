@@ -41,7 +41,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--fb);}
-.screen{position:absolute;inset:0;overflow-y:scroll;-webkit-overflow-scrolling:touch;overflow-x:hidden;display:none;flex-direction:column;background:var(--bg);padding-bottom:calc(var(--nh) + var(--sbi) + 16px);}
+.screen{position:fixed;inset:0;overflow-y:scroll;-webkit-overflow-scrolling:touch;overflow-x:hidden;display:none;flex-direction:column;background:var(--bg);padding-bottom:calc(var(--nh) + var(--sbi) + 16px);}
 .screen.active{display:flex;}
 .screen-full{padding-bottom:0!important;}
 ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
@@ -1846,7 +1846,7 @@ async function savePhaseEdit(){
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function buildCoachPinScreen(){
   buildPad('cp-pad','cp-dots', pin=>{
-    if(pin===COACH_PIN){ showScreen('coach'); loadCoachData(); }
+    if(pin===COACH_PIN){ _currentScreen='coach'; showScreen('coach'); loadCoachData(); }
     else toast('Incorrect coach PIN',true);
   });
 }
